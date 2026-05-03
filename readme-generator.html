@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>README Visual Editor</title>
+    <!-- Tailwind CSS laden -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons laden -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        
+        /* Verhindert Flackern beim Drag & Drop */
+        .drag-over { border-color: #3b82f6 !important; background-color: rgba(59, 130, 246, 0.1) !important; }
+        [draggable="true"] { user-select: none; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans p-4 md:p-6 pb-20 min-h-screen">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        <!-- Header -->
+        <div class="flex justify-between items-center bg-gray-800 p-5 rounded-xl shadow border border-gray-700">
+            <div>
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <span class="text-blue-400">README</span> Visual Editor
+                </h1>
+                <p class="text-gray-400 text-sm mt-1">Drag & Drop Profil-Editor (Vanilla JS)</p>
+            </div>
+            <button id="btn-load-demo" class="text-sm bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded flex items-center gap-2 transition">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Demo laden
+            </button>
+        </div>
+
+        <!-- Start Screen (Dropzone) -->
+        <div id="dropzone" class="border-2 border-dashed border-gray-600 bg-gray-800 hover:border-gray-500 rounded-xl p-20 text-center transition-all">
+            <i data-lucide="upload-cloud" class="mx-auto h-16 w-16 text-gray-400 mb-4"></i>
+            <h3 class="text-xl font-medium text-gray-200">README.md hier ablegen</h3>
+            <p class="text-gray-400 mt-2">Um den Visual Editor zu starten, ziehe deine Datei hier rein.</p>
+        </div>
+
+        <!-- Main Editor Interface -->
+        <div id="editor-interface" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            
+            <!-- LEFT: Visual Builder -->
+            <div class="space-y-4">
+                <div class="flex justify-between items-center bg-gray-800 p-4 rounded-xl border border-gray-700">
+                    <h2 class="text-lg font-semibold text-gray-200">Kategorien & Projekte</h2>
+                    <button onclick="openCategoryModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1 transition">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Neue Kategorie
+                    </button>
+                </div>
+
+                <!-- Categories Container -->
+                <div id="categories-container" class="space-y-4"></div>
+            </div>
+
+            <!-- RIGHT: Live Code Preview -->
+            <div class="bg-gray-800 rounded-xl p-4 md:p-6 shadow border border-gray-700 sticky top-6">
+                <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
+                    <h2 class="text-lg font-semibold flex items-center gap-2">Live Vorschau (Markdown)</h2>
+                    <div class="flex gap-2">
+                        <button id="btn-copy" class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded text-gray-300 text-sm flex items-center gap-2 transition">
+                            <i data-lucide="copy" class="w-4 h-4" id="copy-icon"></i> <span id="copy-text">Kopieren</span>
+                        </button>
+                        <button id="btn-download" class="p-1.5 bg-blue-600 hover:bg-blue-500 rounded text-white transition">
+                            <i data-lucide="download" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+                <textarea id="markdown-output" readonly class="w-full h-[600px] bg-gray-900 border border-gray-700 rounded-lg p-4 text-gray-300 font-mono text-xs md:text-sm focus:outline-none resize-none custom-scrollbar"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Project Editor -->
+    <div id="project-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-800/50">
+                <h3 id="project-modal-title" class="font-semibold text-lg">Projekt bearbeiten</h3>
+                <button onclick="closeModals()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Name</label>
+                        <input type="text" id="proj-name" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm" />
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-medium text-gray-400 mb-1">URL / Link</label>
+                        <input type="text" id="proj-url" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm" />
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Icon URL (optional)</label>
+                        <input type="text" id="proj-icon" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm" />
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-medium text-gray-400 mb-1">Beschreibung</label>
+                        <textarea id="proj-desc" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm resize-none"></textarea>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block text-xs font-medium text-gray-400 mb-1 flex justify-between">
+                            Badges (HTML/Markdown)
+                            <button onclick="autoGenerateBadges()" class="text-blue-400 hover:text-blue-300 transition">Automatisch generieren</button>
+                        </label>
+                        <textarea id="proj-badges" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm font-mono resize-none"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-700 bg-gray-800/50 flex justify-end gap-3">
+                <button onclick="closeModals()" class="px-4 py-2 text-sm text-gray-300 hover:text-white transition">Abbrechen</button>
+                <button onclick="saveProject()" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded transition">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Category Editor -->
+    <div id="category-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-sm shadow-2xl overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-800/50">
+                <h3 id="category-modal-title" class="font-semibold text-lg">Kategorie bearbeiten</h3>
+                <button onclick="closeModals()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Kategorie Name</label>
+                    <input type="text" id="cat-name" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm" />
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Kategorie Icon URL (optional)</label>
+                    <input type="text" id="cat-icon" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm" />
+                </div>
+            </div>
+            <div class="p-4 border-t border-gray-700 bg-gray-800/50 flex justify-end gap-3">
+                <button onclick="closeModals()" class="px-4 py-2 text-sm text-gray-300 hover:text-white transition">Abbrechen</button>
+                <button onclick="saveCategory()" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded transition">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- STATE MANAGEMENT ---
+        let parsedData = { preface: '', categories: [], footer: '' };
+        let isLoaded = false;
+        
+        // Modal States
+        let currentModalEdit = { isEdit: false, catIdx: null, projIdx: null };
+
+        // Drag & Drop States
+        let dragSource = { type: null, catIdx: null, projIdx: null };
+
+        // --- INIT ---
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            setupDropzone();
+            setupTopBarEvents();
+        });
+
+        // --- PARSER ---
+        function parseMarkdown(md) {
+            try {
+                const blocks = md.split(/^###\s+/m);
+                const preface = blocks[0];
+                const categories = [];
+                let footer = '';
+
+                for (let i = 1; i < blocks.length; i++) {
+                    const block = blocks[i];
+                    const lines = block.split('\n');
+                    const titleLine = lines[0].trim();
+                    
+                    let catIcon = '';
+                    let catName = titleLine;
+                    const imgMatch = titleLine.match(/<img[^>]+src="([^"]+)"[^>]*>/);
+                    if (imgMatch) {
+                        catIcon = imgMatch[1];
+                        catName = titleLine.replace(/<img[^>]+>/, '').trim();
+                    }
+
+                    const projects = [];
+                    let inTable = false;
+                    let postTableText = [];
+
+                    for (let j = 1; j < lines.length; j++) {
+                        const line = lines[j].trim();
+                        if (line.startsWith('| Project') || line.startsWith('| :---')) {
+                            inTable = true;
+                            continue;
+                        }
+                        if (inTable && line.startsWith('|')) {
+                            const cols = line.split('|').map(c => c.trim()).filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+                            if (cols.length >= 3) {
+                                const col1 = cols[0];
+                                let iconUrl = col1.match(/src="([^"]+)"/)?.[1] || "";
+                                let url = col1.match(/\]\(([^)]+)\)/)?.[1] || "";
+                                let name = col1.match(/\[(.*?)\]/)?.[1] || col1.replace(/<img[^>]*>/, '').replace(/\*/g, '').trim();
+
+                                projects.push({
+                                    id: Math.random().toString(36).substr(2, 9),
+                                    iconUrl, name, url, description: cols[1], badgesHtml: cols[2]
+                                });
+                            }
+                        } else if (inTable && !line.startsWith('|') && line !== '') {
+                            inTable = false;
+                            postTableText.push(line);
+                        } else if (!inTable && line !== '<br>' && line !== '') {
+                            if (projects.length > 0) postTableText.push(line);
+                        }
+                    }
+
+                    if (i === blocks.length - 1) {
+                        footer = postTableText.join('\n');
+                    }
+
+                    categories.push({ id: Math.random().toString(36).substr(2, 9), iconUrl: catIcon, name: catName, projects });
+                }
+
+                parsedData = { preface, categories, footer: footer.trim() };
+                isLoaded = true;
+                
+                document.getElementById('dropzone').classList.add('hidden');
+                document.getElementById('btn-load-demo').classList.add('hidden');
+                document.getElementById('editor-interface').classList.remove('hidden');
+                
+                renderUI();
+            } catch (e) {
+                alert("Fehler beim Parsen der Markdown-Datei. Format stimmt evtl. nicht.");
+                console.error(e);
+            }
+        }
+
+        // --- GENERATOR ---
+        function generateMarkdown() {
+            if (!isLoaded) return;
+            let md = parsedData.preface.trimEnd() + '\n\n---\n\n';
+            
+            parsedData.categories.forEach((cat, idx) => {
+                let titleHtml = cat.iconUrl ? `<img src="${cat.iconUrl}" width="20" align="center" /> ${cat.name}` : cat.name;
+                md += `### ${titleHtml}\n\n`;
+                md += `| Project | Description | Stats & Info |\n`;
+                md += `| :--- | :--- | :--- |\n`;
+                
+                cat.projects.forEach(p => {
+                    let pIcon = p.iconUrl ? `<img src="${p.iconUrl}" width="20" align="center" /> ` : '';
+                    let pNameUrl = p.url ? `**[${p.name}](${p.url})**` : `**${p.name}**`;
+                    md += `| ${pIcon}${pNameUrl} | ${p.description} | ${p.badgesHtml} |\n`;
+                });
+                
+                if (idx < parsedData.categories.length - 1) {
+                    md += `\n<br>\n\n`;
+                } else {
+                    md += `\n\n`;
+                }
+            });
+
+            if (parsedData.footer) {
+                md += `---\n${parsedData.footer}`;
+            }
+            
+            document.getElementById('markdown-output').value = md;
+        }
+
+        // --- RENDER UI ---
+        function renderUI() {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = '';
+
+            parsedData.categories.forEach((cat, catIdx) => {
+                // Category HTML
+                const catDiv = document.createElement('div');
+                catDiv.className = 'bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-sm hover:border-gray-500 transition-colors';
+                catDiv.setAttribute('draggable', 'true');
+                catDiv.setAttribute('data-type', 'category');
+                catDiv.setAttribute('data-cat-idx', catIdx);
+
+                let catIconHtml = cat.iconUrl 
+                    ? `<img src="${cat.iconUrl}" alt="icon" class="w-6 h-6 object-contain" />` 
+                    : `<i data-lucide="image" class="text-gray-500 w-6 h-6"></i>`;
+
+                let projectsHtml = '';
+                cat.projects.forEach((proj, projIdx) => {
+                    let projIconHtml = proj.iconUrl 
+                        ? `<img src="${proj.iconUrl}" class="max-w-full max-h-full" alt="icon"/>` 
+                        : `<span class="text-xs text-gray-400">-</span>`;
+
+                    projectsHtml += `
+                        <div draggable="true" data-type="project" data-cat-idx="${catIdx}" data-proj-idx="${projIdx}"
+                             class="group flex items-center gap-3 bg-gray-800 border border-gray-700 p-3 rounded-lg hover:border-blue-500/50 cursor-move transition-all">
+                            <i data-lucide="grip-vertical" class="text-gray-500 w-5 h-5 flex-shrink-0 cursor-grab"></i>
+                            <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center bg-gray-700 rounded">${projIconHtml}</div>
+                            <div class="flex-grow min-w-0">
+                                <p class="font-medium text-gray-200 truncate">${escapeHtml(proj.name)}</p>
+                                <p class="text-xs text-gray-500 truncate">${escapeHtml(proj.description)}</p>
+                            </div>
+                            <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                <button onclick="openProjectModal(true, ${catIdx}, ${projIdx})" class="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-gray-700 rounded transition"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="deleteProject(${catIdx}, ${projIdx})" class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                catDiv.innerHTML = `
+                    <div class="bg-gray-800/80 p-4 border-b border-gray-700 flex justify-between items-center group cursor-move">
+                        <div class="flex items-center gap-3 pointer-events-none">
+                            <i data-lucide="grip-vertical" class="text-gray-500 w-5 h-5 flex-shrink-0"></i>
+                            ${catIconHtml}
+                            <h3 class="font-semibold text-lg">${escapeHtml(cat.name)}</h3>
+                        </div>
+                        <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="openCategoryModal(true, ${catIdx})" class="p-1.5 text-gray-400 hover:text-blue-400 rounded bg-gray-700"><i data-lucide="edit-2" class="w-3 h-3"></i></button>
+                            <button onclick="deleteCategory(${catIdx})" class="p-1.5 text-gray-400 hover:text-red-400 rounded bg-gray-700"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                        </div>
+                    </div>
+                    <div class="p-3 space-y-2 bg-gray-900/30">
+                        ${projectsHtml}
+                        <button data-type="project-add" data-cat-idx="${catIdx}" onclick="openProjectModal(false, ${catIdx})" 
+                            class="w-full mt-2 py-2 border border-dashed border-gray-600 text-gray-400 hover:border-gray-400 hover:text-gray-200 rounded-lg text-sm flex justify-center items-center gap-2 transition">
+                            <i data-lucide="plus" class="w-4 h-4"></i> Projekt hinzufügen
+                        </button>
+                    </div>
+                `;
+                container.appendChild(catDiv);
+            });
+
+            // Neu laden der Icons nach DOM-Änderung
+            lucide.createIcons();
+            generateMarkdown();
+            setupDragAndDrop();
+        }
+
+        // --- DRAG & DROP LOGIK (Projekte & Kategorien) ---
+        function setupDragAndDrop() {
+            const draggables = document.querySelectorAll('[draggable="true"]');
+            const dropzones = document.querySelectorAll('[data-type="category"], [data-type="project"], [data-type="project-add"]');
+
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', (e) => {
+                    e.stopPropagation();
+                    const type = e.target.getAttribute('data-type');
+                    dragSource.type = type;
+                    dragSource.catIdx = parseInt(e.target.getAttribute('data-cat-idx'));
+                    dragSource.projIdx = type === 'project' ? parseInt(e.target.getAttribute('data-proj-idx')) : null;
+                    e.target.classList.add('opacity-50');
+                });
+
+                draggable.addEventListener('dragend', (e) => {
+                    e.target.classList.remove('opacity-50');
+                    dropzones.forEach(dz => dz.classList.remove('drag-over'));
+                });
+            });
+
+            dropzones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const targetType = zone.getAttribute('data-type');
+                    // Verhindere Projekt auf Kategorie zu droppen und umgekehrt (optisches Feedback)
+                    if (dragSource.type === 'category' && targetType !== 'category') return;
+                    if (dragSource.type === 'project' && targetType === 'category') return;
+                    zone.classList.add('drag-over');
+                });
+
+                zone.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    zone.classList.remove('drag-over');
+                });
+
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    zone.classList.remove('drag-over');
+
+                    const targetType = zone.getAttribute('data-type');
+                    const tCatIdx = parseInt(zone.getAttribute('data-cat-idx'));
+                    
+                    if (dragSource.type === 'project' && (targetType === 'project' || targetType === 'project-add')) {
+                        const tProjIdx = targetType === 'project' ? parseInt(zone.getAttribute('data-proj-idx')) : parsedData.categories[tCatIdx].projects.length;
+                        
+                        // Verschieben in Datenstruktur
+                        const projectToMove = parsedData.categories[dragSource.catIdx].projects.splice(dragSource.projIdx, 1)[0];
+                        parsedData.categories[tCatIdx].projects.splice(tProjIdx, 0, projectToMove);
+                        renderUI();
+                    } 
+                    else if (dragSource.type === 'category' && targetType === 'category') {
+                        if (dragSource.catIdx !== tCatIdx) {
+                            const catToMove = parsedData.categories.splice(dragSource.catIdx, 1)[0];
+                            parsedData.categories.splice(tCatIdx, 0, catToMove);
+                            renderUI();
+                        }
+                    }
+                });
+            });
+        }
+
+        // --- FILE DROPZONE ---
+        function setupDropzone() {
+            const dropzone = document.getElementById('dropzone');
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('border-blue-400', 'bg-blue-400/10');
+                dropzone.classList.remove('border-gray-600');
+            });
+            dropzone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-blue-400', 'bg-blue-400/10');
+                dropzone.classList.add('border-gray-600');
+            });
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-blue-400', 'bg-blue-400/10');
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => parseMarkdown(event.target.result);
+                    reader.readAsText(file);
+                }
+            });
+        }
+
+        // --- CRUD ACTIONS & MODALS ---
+        function openProjectModal(isEdit, catIdx, projIdx = null) {
+            currentModalEdit = { isEdit, catIdx, projIdx };
+            document.getElementById('project-modal-title').innerText = isEdit ? 'Projekt bearbeiten' : 'Neues Projekt';
+            
+            if (isEdit) {
+                const proj = parsedData.categories[catIdx].projects[projIdx];
+                document.getElementById('proj-name').value = proj.name;
+                document.getElementById('proj-url').value = proj.url;
+                document.getElementById('proj-icon').value = proj.iconUrl;
+                document.getElementById('proj-desc').value = proj.description;
+                document.getElementById('proj-badges').value = proj.badgesHtml;
+            } else {
+                document.getElementById('proj-name').value = '';
+                document.getElementById('proj-url').value = '';
+                document.getElementById('proj-icon').value = '';
+                document.getElementById('proj-desc').value = '';
+                document.getElementById('proj-badges').value = '';
+            }
+            document.getElementById('project-modal').classList.remove('hidden');
+        }
+
+        function saveProject() {
+            const projData = {
+                id: currentModalEdit.isEdit ? parsedData.categories[currentModalEdit.catIdx].projects[currentModalEdit.projIdx].id : Math.random().toString(36).substr(2, 9),
+                name: document.getElementById('proj-name').value,
+                url: document.getElementById('proj-url').value,
+                iconUrl: document.getElementById('proj-icon').value,
+                description: document.getElementById('proj-desc').value,
+                badgesHtml: document.getElementById('proj-badges').value
+            };
+
+            if (currentModalEdit.isEdit) {
+                parsedData.categories[currentModalEdit.catIdx].projects[currentModalEdit.projIdx] = projData;
+            } else {
+                parsedData.categories[currentModalEdit.catIdx].projects.push(projData);
+            }
+            closeModals();
+            renderUI();
+        }
+
+        function deleteProject(catIdx, projIdx) {
+            if (!confirm("Projekt wirklich löschen?")) return;
+            parsedData.categories[catIdx].projects.splice(projIdx, 1);
+            renderUI();
+        }
+
+        function openCategoryModal(isEdit = false, catIdx = null) {
+            currentModalEdit = { isEdit, catIdx, projIdx: null };
+            document.getElementById('category-modal-title').innerText = isEdit ? 'Kategorie bearbeiten' : 'Neue Kategorie';
+            
+            if (isEdit) {
+                const cat = parsedData.categories[catIdx];
+                document.getElementById('cat-name').value = cat.name;
+                document.getElementById('cat-icon').value = cat.iconUrl;
+            } else {
+                document.getElementById('cat-name').value = '';
+                document.getElementById('cat-icon').value = '';
+            }
+            document.getElementById('category-modal').classList.remove('hidden');
+        }
+
+        function saveCategory() {
+            const catData = {
+                name: document.getElementById('cat-name').value,
+                iconUrl: document.getElementById('cat-icon').value
+            };
+
+            if (currentModalEdit.isEdit) {
+                parsedData.categories[currentModalEdit.catIdx].name = catData.name;
+                parsedData.categories[currentModalEdit.catIdx].iconUrl = catData.iconUrl;
+            } else {
+                parsedData.categories.push({ id: Math.random().toString(36).substr(2, 9), ...catData, projects: [] });
+            }
+            closeModals();
+            renderUI();
+        }
+
+        function deleteCategory(catIdx) {
+            if (!confirm("Kategorie mit allen Projekten wirklich löschen?")) return;
+            parsedData.categories.splice(catIdx, 1);
+            renderUI();
+        }
+
+        function closeModals() {
+            document.getElementById('project-modal').classList.add('hidden');
+            document.getElementById('category-modal').classList.add('hidden');
+        }
+
+        function autoGenerateBadges() {
+            const id = prompt("GitHub Repo (z.B. M4RC-XX/repo) oder Greasyfork ID eingeben:");
+            if (id) {
+                const isGh = id.includes('/');
+                const badges = isGh 
+                    ? `[![Stars](https://img.shields.io/github/stars/${id}?style=flat-square&color=important&label=Stars)](https://github.com/${id}/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/${id}?color=blue&label=Last%20Update&style=flat-square)](https://github.com/${id})`
+                    : `[![Installs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=important&label=Installs&query=total_installs&url=https://api.greasyfork.org/en/scripts/${id}.json)](https://greasyfork.org/en/scripts/${id})<br>[![Version](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Version&query=version&url=https://api.greasyfork.org/en/scripts/${id}.json)](https://greasyfork.org/en/scripts/${id})`;
+                document.getElementById('proj-badges').value = badges;
+            }
+        }
+
+        // --- TOP BAR EVENTS ---
+        function setupTopBarEvents() {
+            document.getElementById('btn-load-demo').addEventListener('click', () => {
+                const demo = `# Hi there, I'm Marc! 👋\n\nWelcome to my GitHub profile!\n\n---\n\n### <img src="https://www.home-assistant.io/images/favicon.ico" width="20" align="center" /> Home-Assistant\n\n| Project | Description | Stats & Info |\n| :--- | :--- | :--- |\n| <img src="https://d107mjio2rjf74.cloudfront.net/web/static/img/favicon.ico" width="20" align="center" /> **[Home Assistant TickTick Todo](https://github.com/M4RC-XX/homeassistant_ticktick_todo)** | A Home Assistant integration. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/homeassistant_ticktick_todo?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/homeassistant_ticktick_todo/stargazers) |\n\n<br>\n\n### <img src="https://kodi.tv/images/kodi-logo.svg" width="20" align="center" /> Kodi\n\n| Project | Description | Stats & Info |\n| :--- | :--- | :--- |\n| **[Kodi Repo](https://github.com/M4RC-XX/repo)** | Custom Repo | Badges hier |\n\n---\n*Thanks for visiting!*`;
+                parseMarkdown(demo);
+            });
+
+            document.getElementById('btn-copy').addEventListener('click', () => {
+                const text = document.getElementById('markdown-output').value;
+                navigator.clipboard.writeText(text).then(() => {
+                    const icon = document.getElementById('copy-icon');
+                    const textSpan = document.getElementById('copy-text');
+                    icon.setAttribute('data-lucide', 'check');
+                    icon.classList.add('text-green-400');
+                    textSpan.innerText = 'Kopiert!';
+                    lucide.createIcons();
+                    
+                    setTimeout(() => {
+                        icon.setAttribute('data-lucide', 'copy');
+                        icon.classList.remove('text-green-400');
+                        textSpan.innerText = 'Kopieren';
+                        lucide.createIcons();
+                    }, 2000);
+                });
+            });
+
+            document.getElementById('btn-download').addEventListener('click', () => {
+                const text = document.getElementById('markdown-output').value;
+                const blob = new Blob([text], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'README.md';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        // Helper
+        function escapeHtml(unsafe) {
+            return (unsafe || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

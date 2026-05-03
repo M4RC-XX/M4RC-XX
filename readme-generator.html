@@ -4,17 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>README Visual Editor</title>
-    <!-- Tailwind CSS laden -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons laden -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
-        
-        /* Verhindert Flackern beim Drag & Drop */
         .drag-over { border-color: #3b82f6 !important; background-color: rgba(59, 130, 246, 0.1) !important; }
         [draggable="true"] { user-select: none; }
     </style>
@@ -22,7 +18,6 @@
 <body class="bg-gray-900 text-gray-100 font-sans p-4 md:p-6 pb-20 min-h-screen">
 
     <div class="max-w-7xl mx-auto space-y-6">
-        <!-- Header -->
         <div class="flex justify-between items-center bg-gray-800 p-5 rounded-xl shadow border border-gray-700">
             <div>
                 <h1 class="text-2xl font-bold flex items-center gap-2">
@@ -35,17 +30,13 @@
             </button>
         </div>
 
-        <!-- Start Screen (Dropzone) -->
         <div id="dropzone" class="border-2 border-dashed border-gray-600 bg-gray-800 hover:border-gray-500 rounded-xl p-20 text-center transition-all">
             <i data-lucide="upload-cloud" class="mx-auto h-16 w-16 text-gray-400 mb-4"></i>
             <h3 class="text-xl font-medium text-gray-200">README.md hier ablegen</h3>
             <p class="text-gray-400 mt-2">Um den Visual Editor zu starten, ziehe deine Datei hier rein.</p>
         </div>
 
-        <!-- Main Editor Interface -->
         <div id="editor-interface" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            
-            <!-- LEFT: Visual Builder -->
             <div class="space-y-4">
                 <div class="flex justify-between items-center bg-gray-800 p-4 rounded-xl border border-gray-700">
                     <h2 class="text-lg font-semibold text-gray-200">Kategorien & Projekte</h2>
@@ -54,11 +45,9 @@
                     </button>
                 </div>
 
-                <!-- Categories Container -->
                 <div id="categories-container" class="space-y-4"></div>
             </div>
 
-            <!-- RIGHT: Live Code Preview -->
             <div class="bg-gray-800 rounded-xl p-4 md:p-6 shadow border border-gray-700 sticky top-6">
                 <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
                     <h2 class="text-lg font-semibold flex items-center gap-2">Live Vorschau (Markdown)</h2>
@@ -76,7 +65,6 @@
         </div>
     </div>
 
-    <!-- MODAL: Project Editor -->
     <div id="project-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl overflow-hidden">
             <div class="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-800/50">
@@ -117,7 +105,6 @@
         </div>
     </div>
 
-    <!-- MODAL: Category Editor -->
     <div id="category-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-sm shadow-2xl overflow-hidden">
             <div class="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-800/50">
@@ -142,24 +129,18 @@
     </div>
 
     <script>
-        // --- STATE MANAGEMENT ---
         let parsedData = { preface: '', categories: [], footer: '' };
         let isLoaded = false;
         
-        // Modal States
         let currentModalEdit = { isEdit: false, catIdx: null, projIdx: null };
-
-        // Drag & Drop States
         let dragSource = { type: null, catIdx: null, projIdx: null };
 
-        // --- INIT ---
         document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
             setupDropzone();
             setupTopBarEvents();
         });
 
-        // --- PARSER ---
         function parseMarkdown(md) {
             try {
                 const blocks = md.split(/^###\s+/m);
@@ -227,15 +208,13 @@
                 
                 renderUI();
             } catch (e) {
-                alert("Fehler beim Parsen der Markdown-Datei. Format stimmt evtl. nicht.");
-                console.error(e);
+                alert("Fehler beim Parsen der Markdown-Datei.");
             }
         }
 
-        // --- GENERATOR ---
         function generateMarkdown() {
             if (!isLoaded) return;
-            let md = parsedData.preface.trimEnd() + '\n\n---\n\n';
+            let md = parsedData.preface.replace(/\s*-{3,}\s*$/, '').trimEnd() + '\n\n---\n\n';
             
             parsedData.categories.forEach((cat, idx) => {
                 let titleHtml = cat.iconUrl ? `<img src="${cat.iconUrl}" width="20" align="center" /> ${cat.name}` : cat.name;
@@ -257,19 +236,20 @@
             });
 
             if (parsedData.footer) {
-                md += `---\n${parsedData.footer}`;
+                let cleanFooter = parsedData.footer.replace(/^\s*-{3,}\s*/, '');
+                if (cleanFooter) {
+                    md += '---\n' + cleanFooter + '\n';
+                }
             }
             
             document.getElementById('markdown-output').value = md;
         }
 
-        // --- RENDER UI ---
         function renderUI() {
             const container = document.getElementById('categories-container');
             container.innerHTML = '';
 
             parsedData.categories.forEach((cat, catIdx) => {
-                // Category HTML
                 const catDiv = document.createElement('div');
                 catDiv.className = 'bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-sm hover:border-gray-500 transition-colors';
                 catDiv.setAttribute('draggable', 'true');
@@ -326,13 +306,11 @@
                 container.appendChild(catDiv);
             });
 
-            // Neu laden der Icons nach DOM-Änderung
             lucide.createIcons();
             generateMarkdown();
             setupDragAndDrop();
         }
 
-        // --- DRAG & DROP LOGIK (Projekte & Kategorien) ---
         function setupDragAndDrop() {
             const draggables = document.querySelectorAll('[draggable="true"]');
             const dropzones = document.querySelectorAll('[data-type="category"], [data-type="project"], [data-type="project-add"]');
@@ -358,7 +336,6 @@
                     e.preventDefault();
                     e.stopPropagation();
                     const targetType = zone.getAttribute('data-type');
-                    // Verhindere Projekt auf Kategorie zu droppen und umgekehrt (optisches Feedback)
                     if (dragSource.type === 'category' && targetType !== 'category') return;
                     if (dragSource.type === 'project' && targetType === 'category') return;
                     zone.classList.add('drag-over');
@@ -380,8 +357,6 @@
                     
                     if (dragSource.type === 'project' && (targetType === 'project' || targetType === 'project-add')) {
                         const tProjIdx = targetType === 'project' ? parseInt(zone.getAttribute('data-proj-idx')) : parsedData.categories[tCatIdx].projects.length;
-                        
-                        // Verschieben in Datenstruktur
                         const projectToMove = parsedData.categories[dragSource.catIdx].projects.splice(dragSource.projIdx, 1)[0];
                         parsedData.categories[tCatIdx].projects.splice(tProjIdx, 0, projectToMove);
                         renderUI();
@@ -397,7 +372,6 @@
             });
         }
 
-        // --- FILE DROPZONE ---
         function setupDropzone() {
             const dropzone = document.getElementById('dropzone');
             dropzone.addEventListener('dragover', (e) => {
@@ -422,7 +396,6 @@
             });
         }
 
-        // --- CRUD ACTIONS & MODALS ---
         function openProjectModal(isEdit, catIdx, projIdx = null) {
             currentModalEdit = { isEdit, catIdx, projIdx };
             document.getElementById('project-modal-title').innerText = isEdit ? 'Projekt bearbeiten' : 'Neues Projekt';
@@ -445,13 +418,29 @@
         }
 
         function saveProject() {
+            let badges = document.getElementById('proj-badges').value;
+            const url = document.getElementById('proj-url').value;
+
+            if (!badges && url) {
+                const ghMatch = url.match(/github\.com\/([^\/]+\/[^\/]+?)(\/|$)/);
+                if (ghMatch) {
+                    const id = ghMatch[1];
+                    badges = `[![Stars](https://img.shields.io/github/stars/${id}?style=flat-square&color=important&label=Stars)](https://github.com/${id}/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/${id}?color=blue&label=Last%20Update&style=flat-square)](https://github.com/${id})`;
+                }
+                const gfMatch = url.match(/greasyfork\.org\/.*scripts\/(\d+)/);
+                if (gfMatch) {
+                    const id = gfMatch[1];
+                    badges = `[![Installs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=important&label=Installs&query=total_installs&url=https://api.greasyfork.org/en/scripts/${id}.json)](https://greasyfork.org/en/scripts/${id})<br>[![Version](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Version&query=version&url=https://api.greasyfork.org/en/scripts/${id}.json)](https://greasyfork.org/en/scripts/${id})`;
+                }
+            }
+
             const projData = {
                 id: currentModalEdit.isEdit ? parsedData.categories[currentModalEdit.catIdx].projects[currentModalEdit.projIdx].id : Math.random().toString(36).substr(2, 9),
                 name: document.getElementById('proj-name').value,
-                url: document.getElementById('proj-url').value,
+                url: url,
                 iconUrl: document.getElementById('proj-icon').value,
                 description: document.getElementById('proj-desc').value,
-                badgesHtml: document.getElementById('proj-badges').value
+                badgesHtml: badges
             };
 
             if (currentModalEdit.isEdit) {
@@ -522,7 +511,6 @@
             }
         }
 
-        // --- TOP BAR EVENTS ---
         function setupTopBarEvents() {
             document.getElementById('btn-load-demo').addEventListener('click', () => {
                 const demo = `# Hi there, I'm Marc! 👋\n\nWelcome to my GitHub profile!\n\n---\n\n### <img src="https://www.home-assistant.io/images/favicon.ico" width="20" align="center" /> Home-Assistant\n\n| Project | Description | Stats & Info |\n| :--- | :--- | :--- |\n| <img src="https://d107mjio2rjf74.cloudfront.net/web/static/img/favicon.ico" width="20" align="center" /> **[Home Assistant TickTick Todo](https://github.com/M4RC-XX/homeassistant_ticktick_todo)** | A Home Assistant integration. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/homeassistant_ticktick_todo?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/homeassistant_ticktick_todo/stargazers) |\n\n<br>\n\n### <img src="https://kodi.tv/images/kodi-logo.svg" width="20" align="center" /> Kodi\n\n| Project | Description | Stats & Info |\n| :--- | :--- | :--- |\n| **[Kodi Repo](https://github.com/M4RC-XX/repo)** | Custom Repo | Badges hier |\n\n---\n*Thanks for visiting!*`;
@@ -560,7 +548,6 @@
             });
         }
 
-        // Helper
         function escapeHtml(unsafe) {
             return (unsafe || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }

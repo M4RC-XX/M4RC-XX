@@ -8,20 +8,14 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 
 ---
 
+---
+
 ### <img src="https://www.home-assistant.io/images/favicon.ico" width="20" align="center" /> Home-Assistant
 
 | Project | Description | Stats & Info |
 | :--- | :--- | :--- |
 | <img src="https://d107mjio2rjf74.cloudfront.net/web/static/img/favicon.ico" width="20" align="center" /> **[Home Assistant TickTick Todo](https://github.com/M4RC-XX/homeassistant_ticktick_todo)** | A <a href="https://www.home-assistant.io">Home Assistant</a> integration to sync and manage your <a href="https://ticktick.com/">TickTick</a> to-do lists directly within your smart home dashboard. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/homeassistant_ticktick_todo?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/homeassistant_ticktick_todo/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/homeassistant_ticktick_todo?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/homeassistant_ticktick_todo) |
 | <img src="https://pelican.dev/img/favicon.ico" width="20" align="center" /> **[Home Assistant Pelican Panel](https://github.com/M4RC-XX/homeassistant_pelican_panel)** | A <a href="https://www.home-assistant.io">Home Assistant</a> integration for <a href="https://pelican.dev/">Pelican Panel</a>. Monitor server resources (CPU, RAM, Network, Disk) and control power states (Start, Stop, Restart) directly from your smart home. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/homeassistant_pelican_panel?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/homeassistant_pelican_panel/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/homeassistant_pelican_panel?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/homeassistant_pelican_panel) |
-
-<br>
-
-### <img src="https://windhawk.net/favicon.ico" width="20" align="center" /> Windhawk
-
-| Project | Description | Stats & Info |
-| :--- | :--- | :--- |
-| <img src="https://windhawk.net/favicon.ico" width="20" align="center" /> **[Windhawk Mods](https://github.com/M4RC-XX/windhawk_mods/)** |  |  |
 
 <br>
 
@@ -54,6 +48,14 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 
 <br>
 
+### <img src="https://windhawk.net/favicon.ico" width="20" align="center" /> Windhawk
+
+| Project | Description | Stats & Info |
+| :--- | :--- | :--- |
+| <img src="https://windhawk.net/favicon.ico" width="20" align="center" /> **[Windhawk Mods](https://github.com/M4RC-XX/windhawk_mods/)** |  |  |
+
+<br>
+
 ### 🛠️ Other
 
 | Project | Description | Stats & Info |
@@ -61,6 +63,7 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 | <img src="https://labs.mysql.com/common/themes/sakila/favicon.ico" width="20" align="center" /> **[MySQL User Management](https://github.com/M4RC-XX/python.mysql-user-management)** | A Python-based user management system with MySQL integration and automated Telegram notifications. | [![Downloads](https://img.shields.io/github/downloads/M4RC-XX/python.mysql-user-management/total?color=important&label=Downloads&style=flat-square)](https://github.com/M4RC-XX/python.mysql-user-management/releases/latest)<br>[![Version](https://img.shields.io/github/v/release/M4RC-XX/python.mysql-user-management?color=blue&label=Version&style=flat-square)](https://github.com/M4RC-XX/python.mysql-user-management)<br>[![Last Update](https://img.shields.io/github/release-date/M4RC-XX/python.mysql-user-management?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/python.mysql-user-management) |
 
 
+---
 ---
 ---
 ---

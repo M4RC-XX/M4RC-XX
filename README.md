@@ -4,6 +4,8 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 
 ---
 
+---
+
 ### <img src="https://www.home-assistant.io/images/favicon.ico" width="20" align="center" /> Home-Assistant
 
 | Project | Description | Stats & Info |
@@ -35,10 +37,10 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 
 ### <img src="https://greasyfork.org/vite/assets/blacklogo16-DftkYuVe.png" width="20" align="center" /> Userscripts
 
-| Script | Description | Stats & Info |
+| Project | Description | Stats & Info |
 | :--- | :--- | :--- |
-| <img src="https://s.to/favicon.ico" width="20" align="center" /><img src="https://aniworld.to/favicon.ico?v=1" width="20" align="center" /> **[Serienstream & Aniworld Priority Hoster](https://greasyfork.org/en/scripts/524865)** | A userscript to automatically prioritize your preferred video hosters on Serienstream and Aniworld. | [![Installs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=important&label=Installs&query=total_installs&url=https://api.greasyfork.org/en/scripts/524865.json)](https://greasyfork.org/en/scripts/524865)<br>[![Version](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Version&query=version&url=https://api.greasyfork.org/en/scripts/524865.json)](https://greasyfork.org/en/scripts/524865)<br>[![Last Update](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Last%20Update&query=code_updated_at&url=https://api.greasyfork.org/en/scripts/524865.json)](https://greasyfork.org/en/scripts/524865) |
-| <img src="https://s.to/favicon.ico" width="20" align="center" /><img src="https://aniworld.to/favicon.ico?v=1" width="20" align="center" /> **[Serienstream & Aniworld Watched Notifications](https://greasyfork.org/en/scripts/524868)** | A userscript to provide visual notifications and tracking for watched episodes on Serienstream and Aniworld. | [![Installs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=important&label=Installs&query=total_installs&url=https://api.greasyfork.org/en/scripts/524868.json)](https://greasyfork.org/en/scripts/524868)<br>[![Version](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Version&query=version&url=https://api.greasyfork.org/en/scripts/524868.json)](https://greasyfork.org/en/scripts/524865)<br>[![Last Update](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Last%20Update&query=code_updated_at&url=https://api.greasyfork.org/en/scripts/524868.json)](https://greasyfork.org/en/scripts/524868) |
+| <img src="https://s.to/favicon.ico" width="20" align="center" /> **[Serienstream & Aniworld Priority Hoster](https://greasyfork.org/en/scripts/524865)** | A userscript to automatically prioritize your preferred video hosters on Serienstream and Aniworld. | [![Installs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=important&label=Installs&query=total_installs&url=https://api.greasyfork.org/en/scripts/524865.json)](https://greasyfork.org/en/scripts/524865)<br>[![Version](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Version&query=version&url=https://api.greasyfork.org/en/scripts/524865.json)](https://greasyfork.org/en/scripts/524865)<br>[![Last Update](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Last%20Update&query=code_updated_at&url=https://api.greasyfork.org/en/scripts/524865.json)](https://greasyfork.org/en/scripts/524865) |
+| <img src="https://s.to/favicon.ico" width="20" align="center" /> **[Serienstream & Aniworld Watched Notifications](https://greasyfork.org/en/scripts/524868)** | A userscript to provide visual notifications and tracking for watched episodes on Serienstream and Aniworld. | [![Installs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=important&label=Installs&query=total_installs&url=https://api.greasyfork.org/en/scripts/524868.json)](https://greasyfork.org/en/scripts/524868)<br>[![Version](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Version&query=version&url=https://api.greasyfork.org/en/scripts/524868.json)](https://greasyfork.org/en/scripts/524865)<br>[![Last Update](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Last%20Update&query=code_updated_at&url=https://api.greasyfork.org/en/scripts/524868.json)](https://greasyfork.org/en/scripts/524868) |
 
 <br>
 
@@ -48,5 +50,15 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 | :--- | :--- | :--- |
 | <img src="https://labs.mysql.com/common/themes/sakila/favicon.ico" width="20" align="center" /> **[MySQL User Management](https://github.com/M4RC-XX/python.mysql-user-management)** | A Python-based user management system with MySQL integration and automated Telegram notifications. | [![Downloads](https://img.shields.io/github/downloads/M4RC-XX/python.mysql-user-management/total?color=important&label=Downloads&style=flat-square)](https://github.com/M4RC-XX/python.mysql-user-management/releases/latest)<br>[![Version](https://img.shields.io/github/v/release/M4RC-XX/python.mysql-user-management?color=blue&label=Version&style=flat-square)](https://github.com/M4RC-XX/python.mysql-user-management)<br>[![Last Update](https://img.shields.io/github/release-date/M4RC-XX/python.mysql-user-management?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/python.mysql-user-management) |
 
+<br>
+
+### <img src="https://windhawk.net/favicon.ico" width="20" align="center" /> Windhawk
+
+| Project | Description | Stats & Info |
+| :--- | :--- | :--- |
+| **[Double Click hide Desktop Icons](https://github.com/M4RC-XX/windhawk_mods/blob/main/mods/double-click-hide-desktop-icons.cpp)** |  |  |
+
+
+---
 ---
 *If you find my projects helpful, feel free to leave a ⭐ on the repositories!*

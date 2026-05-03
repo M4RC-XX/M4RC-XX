@@ -4,12 +4,6 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 
 ---
 
----
-
----
-
----
-
 ### <img src="https://www.home-assistant.io/images/favicon.ico" width="20" align="center" /> Home-Assistant
 
 | Project | Description | Stats & Info |
@@ -52,7 +46,7 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 
 | Project | Description | Stats & Info |
 | :--- | :--- | :--- |
-| <img src="https://windhawk.net/favicon.ico" width="20" align="center" /> **[Windhawk Mods](https://github.com/M4RC-XX/windhawk_mods/)** |  | [![Stars](https://img.shields.io/github/stars/M4RC-XX/windhawk_mods?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/windhawk_mods/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/windhawk_mods?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/windhawk_mods) |
+| <img src="https://windhawk.net/favicon.ico" width="20" align="center" /> **[Windhawk Mods](https://github.com/M4RC-XX/windhawk_mods/)** | A collection mods for Windhawk, the customization platform for Windows. These mods are designed to tweak, enhance, and optimize various aspects of the Windows UI and system behavior. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/windhawk_mods?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/windhawk_mods/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/windhawk_mods?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/windhawk_mods) |
 
 <br>
 
@@ -63,8 +57,5 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 | <img src="https://labs.mysql.com/common/themes/sakila/favicon.ico" width="20" align="center" /> **[MySQL User Management](https://github.com/M4RC-XX/python.mysql-user-management)** | A Python-based user management system with MySQL integration and automated Telegram notifications. | [![Downloads](https://img.shields.io/github/downloads/M4RC-XX/python.mysql-user-management/total?color=important&label=Downloads&style=flat-square)](https://github.com/M4RC-XX/python.mysql-user-management/releases/latest)<br>[![Version](https://img.shields.io/github/v/release/M4RC-XX/python.mysql-user-management?color=blue&label=Version&style=flat-square)](https://github.com/M4RC-XX/python.mysql-user-management)<br>[![Last Update](https://img.shields.io/github/release-date/M4RC-XX/python.mysql-user-management?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/python.mysql-user-management) |
 
 
----
----
----
 ---
 *If you find my projects helpful, feel free to leave a ⭐ on the repositories!*

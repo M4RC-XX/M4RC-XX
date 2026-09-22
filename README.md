@@ -24,7 +24,7 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 
 <br>
 
-### <img src="https://www.docker.com/app/uploads/2024/02/cropped-docker-logo-favicon-32x32.png" width="20" align="center" /> Docker
+### <img src="/icons/docker.svg" width="20" align="center" /> Docker
 
 | Project | Description | Stats & Info |
 | :--- | :--- | :--- |

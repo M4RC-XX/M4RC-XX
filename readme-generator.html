@@ -3,134 +3,356 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>README Visual Editor</title>
+    <title>README Visual Editor & Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
-        .drag-over { border-color: #3b82f6 !important; background-color: rgba(59, 130, 246, 0.1) !important; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #111827; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+        .drag-over { border-color: #3b82f6 !important; background-color: rgba(59, 130, 246, 0.12) !important; transform: scale(1.005); }
         [draggable="true"] { user-select: none; }
+        
+        /* Rendered GitHub table styles */
+        .preview-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+        .preview-content th, .preview-content td {
+            border: 1px solid #374151;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            vertical-align: middle;
+        }
+        .preview-content th {
+            background-color: #1f2937;
+            font-weight: 600;
+            color: #93c5fd;
+        }
+        .preview-content tr:nth-child(even) {
+            background-color: rgba(31, 41, 55, 0.4);
+        }
+        .preview-content h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 1rem; }
+        .preview-content h3 { font-size: 1.25rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .preview-content a { color: #60a5fa; text-decoration: underline; text-underline-offset: 2px; }
+        .preview-content a:hover { color: #93c5fd; }
+        .preview-content hr { border-color: #374151; margin: 1.5rem 0; }
+        .preview-content img { display: inline-block; vertical-align: middle; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans p-4 md:p-6 pb-20 min-h-screen">
+<body class="bg-gray-950 text-gray-100 font-sans p-4 md:p-6 pb-24 min-h-screen">
 
     <div class="max-w-7xl mx-auto space-y-6">
-        <div class="flex justify-between items-center bg-gray-800 p-5 rounded-xl shadow border border-gray-700">
-            <div>
-                <h1 class="text-2xl font-bold flex items-center gap-2">
-                    <span class="text-blue-400">README</span> Visual Editor
-                </h1>
-                <p class="text-gray-400 text-sm mt-1">Drag & Drop Profil-Editor (Vanilla JS)</p>
+        <!-- Top Navbar -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-900/90 backdrop-blur p-4 sm:p-5 rounded-2xl shadow-xl border border-gray-800">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                    <i data-lucide="layout-template" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">README</span> Visual Editor
+                    </h1>
+                    <p class="text-gray-400 text-xs sm:text-sm">Interaktiver Drag & Drop Profil-Editor & Badge-Generator</p>
+                </div>
             </div>
-            <button id="btn-load-demo" class="text-sm bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded flex items-center gap-2 transition">
-                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Demo laden
-            </button>
+            
+            <div class="flex flex-wrap items-center gap-2">
+                <button id="btn-paste-md" class="text-xs sm:text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-3.5 py-2 rounded-xl flex items-center gap-2 border border-gray-700 transition">
+                    <i data-lucide="file-code" class="w-4 h-4 text-blue-400"></i> Markdown einfügen
+                </button>
+                <button id="btn-load-demo" class="text-xs sm:text-sm bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-3.5 py-2 rounded-xl flex items-center gap-2 border border-gray-700 transition">
+                    <i data-lucide="refresh-cw" class="w-4 h-4 text-emerald-400"></i> Aktuelle README laden
+                </button>
+                <input type="file" id="file-input" accept=".md,.markdown,text/markdown" class="hidden" />
+                <button onclick="document.getElementById('file-input').click()" class="text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl flex items-center gap-2 transition shadow-lg shadow-blue-500/20">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Datei öffnen
+                </button>
+            </div>
+        </header>
+
+        <!-- Initial Dropzone -->
+        <div id="dropzone" class="border-2 border-dashed border-gray-700 bg-gray-900/60 hover:border-blue-500/60 hover:bg-blue-500/5 rounded-2xl p-12 sm:p-20 text-center transition-all cursor-pointer">
+            <div class="w-20 h-20 mx-auto mb-5 rounded-2xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                <i data-lucide="upload-cloud" class="w-10 h-10"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-200">README.md hier ablegen oder anklicken</h3>
+            <p class="text-gray-400 text-sm mt-2 max-w-md mx-auto">Ziehe deine Markdown-Datei hierhin, nutze den Datei-Öffnen-Button oder lade direkt die aktuelle Repo-Vorlage.</p>
+            <div class="mt-6 flex justify-center gap-3">
+                <button type="button" onclick="loadDefaultTemplate()" class="text-sm bg-gray-800 hover:bg-gray-700 text-blue-400 px-4 py-2 rounded-xl border border-gray-700 flex items-center gap-2 transition">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i> Aktuelles Repo-Profil öffnen
+                </button>
+            </div>
         </div>
 
-        <div id="dropzone" class="border-2 border-dashed border-gray-600 bg-gray-800 hover:border-gray-500 rounded-xl p-20 text-center transition-all">
-            <i data-lucide="upload-cloud" class="mx-auto h-16 w-16 text-gray-400 mb-4"></i>
-            <h3 class="text-xl font-medium text-gray-200">README.md hier ablegen</h3>
-            <p class="text-gray-400 mt-2">Um den Visual Editor zu starten, ziehe deine Datei hier rein.</p>
-        </div>
-
+        <!-- Main Editor Interface -->
         <div id="editor-interface" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <!-- Left Column: Categories and Projects Manager -->
             <div class="space-y-4">
-                <div class="flex justify-between items-center bg-gray-800 p-4 rounded-xl border border-gray-700">
-                    <h2 class="text-lg font-semibold text-gray-200">Kategorien & Projekte</h2>
-                    <button onclick="openCategoryModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm flex items-center gap-1 transition">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Neue Kategorie
-                    </button>
+                <div class="flex flex-wrap justify-between items-center bg-gray-900 p-4 rounded-2xl border border-gray-800 gap-3">
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-semibold text-gray-200">Kategorien & Projekte</h2>
+                        <span id="stats-badge" class="text-xs bg-gray-800 text-gray-400 px-2.5 py-1 rounded-full border border-gray-700">0 Kategorien</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openHeaderFooterModal()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm flex items-center gap-1.5 border border-gray-700 transition" title="Header & Footer bearbeiten">
+                            <i data-lucide="align-left" class="w-4 h-4 text-amber-400"></i> Header/Footer
+                        </button>
+                        <button onclick="openCategoryModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm flex items-center gap-1.5 transition shadow-md shadow-blue-500/20">
+                            <i data-lucide="folder-plus" class="w-4 h-4"></i> Neue Kategorie
+                        </button>
+                    </div>
                 </div>
 
                 <div id="categories-container" class="space-y-4"></div>
             </div>
 
-            <div class="bg-gray-800 rounded-xl p-4 md:p-6 shadow border border-gray-700 sticky top-6">
-                <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
-                    <h2 class="text-lg font-semibold flex items-center gap-2">Live Vorschau (Markdown)</h2>
+            <!-- Right Column: Live Preview & Code Toggle -->
+            <div class="bg-gray-900 rounded-2xl p-4 sm:p-6 shadow-xl border border-gray-800 sticky top-6">
+                <div class="flex justify-between items-center border-b border-gray-800 pb-4 mb-4 gap-3">
+                    <div class="flex bg-gray-950 p-1 rounded-xl border border-gray-800">
+                        <button id="tab-code" onclick="switchPreviewTab('code')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition bg-blue-600 text-white flex items-center gap-1.5">
+                            <i data-lucide="code-2" class="w-4 h-4"></i> Markdown
+                        </button>
+                        <button id="tab-rendered" onclick="switchPreviewTab('rendered')" class="px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition text-gray-400 hover:text-gray-200 flex items-center gap-1.5">
+                            <i data-lucide="eye" class="w-4 h-4"></i> GitHub-Vorschau
+                        </button>
+                    </div>
+                    
                     <div class="flex gap-2">
-                        <button id="btn-copy" class="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded text-gray-300 text-sm flex items-center gap-2 transition">
+                        <button id="btn-copy" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 rounded-xl text-gray-300 hover:text-white text-xs sm:text-sm flex items-center gap-2 border border-gray-700 transition">
                             <i data-lucide="copy" class="w-4 h-4" id="copy-icon"></i> <span id="copy-text">Kopieren</span>
                         </button>
-                        <button id="btn-download" class="p-1.5 bg-blue-600 hover:bg-blue-500 rounded text-white transition">
-                            <i data-lucide="download" class="w-5 h-5"></i>
+                        <button id="btn-download" title="README.md herunterladen" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-white text-xs sm:text-sm flex items-center gap-1.5 transition shadow-lg shadow-blue-500/20">
+                            <i data-lucide="download" class="w-4 h-4"></i> <span>Download</span>
                         </button>
                     </div>
                 </div>
-                <textarea id="markdown-output" readonly class="w-full h-[600px] bg-gray-900 border border-gray-700 rounded-lg p-4 text-gray-300 font-mono text-xs md:text-sm focus:outline-none resize-none custom-scrollbar"></textarea>
-            </div>
-        </div>
-    </div>
 
-    <div id="project-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl overflow-hidden">
-            <div class="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-800/50">
-                <h3 id="project-modal-title" class="font-semibold text-lg">Projekt bearbeiten</h3>
-                <button onclick="closeModals()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            <div class="p-5 space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="col-span-2">
-                        <label class="block text-xs font-medium text-gray-400 mb-1">Name</label>
-                        <input type="text" id="proj-name" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm" />
-                    </div>
-                    <div class="col-span-2">
-                        <label class="block text-xs font-medium text-gray-400 mb-1">URL / Link</label>
-                        <input type="text" id="proj-url" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm" />
-                    </div>
-                    <div class="col-span-2">
-                        <label class="block text-xs font-medium text-gray-400 mb-1">Icon URL (optional)</label>
-                        <input type="text" id="proj-icon" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm" />
-                    </div>
-                    <div class="col-span-2">
-                        <label class="block text-xs font-medium text-gray-400 mb-1">Beschreibung</label>
-                        <textarea id="proj-desc" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm resize-none"></textarea>
-                    </div>
-                    <div class="col-span-2">
-                        <label class="block text-xs font-medium text-gray-400 mb-1 flex justify-between">
-                            Badges (HTML/Markdown)
-                            <button onclick="autoGenerateBadges()" class="text-blue-400 hover:text-blue-300 transition">Automatisch generieren</button>
-                        </label>
-                        <textarea id="proj-badges" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm font-mono resize-none"></textarea>
-                    </div>
+                <!-- Code View -->
+                <div id="view-code">
+                    <textarea id="markdown-output" class="w-full h-[620px] bg-gray-950 border border-gray-800 rounded-xl p-4 text-gray-300 font-mono text-xs md:text-sm focus:outline-none focus:border-blue-500/50 resize-none custom-scrollbar" spellcheck="false"></textarea>
+                </div>
+
+                <!-- Rendered GitHub-style View -->
+                <div id="view-rendered" class="hidden h-[620px] bg-gray-950 border border-gray-800 rounded-xl p-4 sm:p-6 overflow-y-auto custom-scrollbar preview-content text-gray-200">
+                    <div id="rendered-content"></div>
                 </div>
             </div>
-            <div class="p-4 border-t border-gray-700 bg-gray-800/50 flex justify-end gap-3">
-                <button onclick="closeModals()" class="px-4 py-2 text-sm text-gray-300 hover:text-white transition">Abbrechen</button>
-                <button onclick="saveProject()" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded transition">Speichern</button>
+        </div>
+    </div>
+
+    <!-- Project Edit / Add Modal -->
+    <div id="project-modal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 sm:p-5 border-b border-gray-800 bg-gray-900/60">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center">
+                        <i data-lucide="box" class="w-4 h-4"></i>
+                    </div>
+                    <h3 id="project-modal-title" class="font-semibold text-lg text-white">Projekt bearbeiten</h3>
+                </div>
+                <button onclick="closeModals()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <div class="p-5 space-y-4 overflow-y-auto custom-scrollbar flex-grow">
+                <!-- Target Category -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Kategorie</label>
+                    <select id="proj-cat-select" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500 text-sm"></select>
+                </div>
+
+                <!-- URL & Auto Fetch -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-medium text-gray-400">URL / Link (GitHub Repo, Chrome Web Store, Greasyfork)</label>
+                        <button type="button" onclick="autoFetchUrlInfo()" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium transition">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Infos automatisch abrufen
+                        </button>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="proj-url" placeholder="https://github.com/..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-blue-500 text-sm" />
+                    </div>
+                    <p class="text-[11px] text-gray-500 mt-1">Tipp: Nach Eingabe der URL kannst du oben auf „Infos automatisch abrufen“ klicken.</p>
+                </div>
+
+                <!-- Name -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Projekt Name</label>
+                    <input type="text" id="proj-name" placeholder="z.B. QUANTUM Video Downloader" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-blue-500 text-sm" />
+                </div>
+
+                <!-- Icon Selector -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-medium text-gray-400">Projekt Icon</label>
+                        <span id="proj-icon-preview" class="flex items-center gap-1 text-xs text-gray-400"></span>
+                    </div>
+                    <input type="text" id="proj-icon" placeholder="/icons/chrome.svg oder Bild-URL" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2 text-white outline-none focus:border-blue-500 text-sm mb-2" oninput="updateIconPreview('proj-icon', 'proj-icon-preview')" />
+                    
+                    <!-- Quick Icon Picker Pills -->
+                    <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800/80">
+                        <div class="text-[11px] text-gray-400 font-medium mb-1.5 flex items-center gap-1">
+                            <i data-lucide="palette" class="w-3 h-3 text-blue-400"></i> Repo-Icons Schnellwahl:
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto custom-scrollbar" id="proj-icon-pills"></div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Beschreibung</label>
+                    <textarea id="proj-desc" rows="2" placeholder="Kurze, prägnante Beschreibung des Projekts..." class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-blue-500 text-sm resize-none"></textarea>
+                </div>
+
+                <!-- Badges -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-medium text-gray-400">Stats & Info Badges (Markdown / HTML)</label>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="generateBadgesForCurrentProjectModal()" class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 font-medium transition">
+                                <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Badges generieren
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="proj-badges" rows="3" placeholder="[![Stars](...)](...)" class="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-white outline-none focus:border-blue-500 text-xs font-mono resize-none"></textarea>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-gray-800 bg-gray-900/60 flex justify-end gap-3">
+                <button onclick="closeModals()" class="px-4 py-2 text-sm text-gray-300 hover:text-white rounded-xl hover:bg-gray-800 transition">Abbrechen</button>
+                <button onclick="saveProject()" class="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition shadow-lg shadow-blue-500/20">Speichern</button>
             </div>
         </div>
     </div>
 
-    <div id="category-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-gray-800 border border-gray-700 rounded-xl w-full max-w-sm shadow-2xl overflow-hidden">
-            <div class="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-800/50">
-                <h3 id="category-modal-title" class="font-semibold text-lg">Kategorie bearbeiten</h3>
-                <button onclick="closeModals()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <!-- Category Modal -->
+    <div id="category-modal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div class="flex justify-between items-center p-4 sm:p-5 border-b border-gray-800 bg-gray-900/60">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600/20 text-indigo-400 flex items-center justify-center">
+                        <i data-lucide="folder" class="w-4 h-4"></i>
+                    </div>
+                    <h3 id="category-modal-title" class="font-semibold text-lg text-white">Kategorie bearbeiten</h3>
+                </div>
+                <button onclick="closeModals()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
+            
             <div class="p-5 space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1">Kategorie Name</label>
-                    <input type="text" id="cat-name" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm" />
+                    <input type="text" id="cat-name" placeholder="z.B. Browser, Home-Assistant, Docker" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-blue-500 text-sm" />
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1">Kategorie Icon URL (optional)</label>
-                    <input type="text" id="cat-icon" class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white outline-none focus:border-blue-500 text-sm" />
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-medium text-gray-400">Kategorie Icon URL (optional)</label>
+                        <span id="cat-icon-preview" class="flex items-center gap-1 text-xs text-gray-400"></span>
+                    </div>
+                    <input type="text" id="cat-icon" placeholder="/icons/www.svg oder Emoji wie 🛠️" class="w-full bg-gray-950 border border-gray-800 rounded-xl px-3.5 py-2 text-white outline-none focus:border-blue-500 text-sm mb-2" oninput="updateIconPreview('cat-icon', 'cat-icon-preview')" />
+                    
+                    <div class="bg-gray-950/70 p-2.5 rounded-xl border border-gray-800/80">
+                        <div class="text-[11px] text-gray-400 font-medium mb-1.5 flex items-center gap-1">
+                            <i data-lucide="palette" class="w-3 h-3 text-indigo-400"></i> Repo-Icons Schnellwahl:
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto custom-scrollbar" id="cat-icon-pills"></div>
+                    </div>
                 </div>
             </div>
-            <div class="p-4 border-t border-gray-700 bg-gray-800/50 flex justify-end gap-3">
-                <button onclick="closeModals()" class="px-4 py-2 text-sm text-gray-300 hover:text-white transition">Abbrechen</button>
-                <button onclick="saveCategory()" class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded transition">Speichern</button>
+
+            <div class="p-4 border-t border-gray-800 bg-gray-900/60 flex justify-end gap-3">
+                <button onclick="closeModals()" class="px-4 py-2 text-sm text-gray-300 hover:text-white rounded-xl hover:bg-gray-800 transition">Abbrechen</button>
+                <button onclick="saveCategory()" class="px-5 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-xl transition shadow-lg shadow-indigo-500/20">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header & Footer Modal -->
+    <div id="header-footer-modal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
+            <div class="flex justify-between items-center p-4 sm:p-5 border-b border-gray-800 bg-gray-900/60">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-amber-600/20 text-amber-400 flex items-center justify-center">
+                        <i data-lucide="align-left" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="font-semibold text-lg text-white">Header & Footer bearbeiten</h3>
+                </div>
+                <button onclick="closeModals()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Header (Begrüßung / Einleitung)</label>
+                    <textarea id="edit-preface" rows="4" class="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-white outline-none focus:border-blue-500 text-sm custom-scrollbar"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1">Footer (Schlusszeile)</label>
+                    <textarea id="edit-footer" rows="2" class="w-full bg-gray-950 border border-gray-800 rounded-xl p-3 text-white outline-none focus:border-blue-500 text-sm custom-scrollbar"></textarea>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-gray-800 bg-gray-900/60 flex justify-end gap-3">
+                <button onclick="closeModals()" class="px-4 py-2 text-sm text-gray-300 hover:text-white rounded-xl hover:bg-gray-800 transition">Abbrechen</button>
+                <button onclick="saveHeaderFooter()" class="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition shadow-lg shadow-blue-500/20">Speichern</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paste Raw Markdown Modal -->
+    <div id="paste-modal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="flex justify-between items-center p-4 sm:p-5 border-b border-gray-800 bg-gray-900/60">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center">
+                        <i data-lucide="file-code" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="font-semibold text-lg text-white">Markdown-Inhalt direkt einfügen</h3>
+                </div>
+                <button onclick="closeModals()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <div class="p-5 space-y-2">
+                <p class="text-xs text-gray-400">Füge den Inhalt deiner README.md hier ein, um ihn direkt im visuellen Editor zu öffnen:</p>
+                <textarea id="paste-textarea" rows="12" placeholder="# Hi there..." class="w-full bg-gray-950 border border-gray-800 rounded-xl p-3.5 text-white font-mono text-xs md:text-sm outline-none focus:border-blue-500 custom-scrollbar"></textarea>
+            </div>
+
+            <div class="p-4 border-t border-gray-800 bg-gray-900/60 flex justify-end gap-3">
+                <button onclick="closeModals()" class="px-4 py-2 text-sm text-gray-300 hover:text-white rounded-xl hover:bg-gray-800 transition">Abbrechen</button>
+                <button onclick="loadPastedMarkdown()" class="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-xl transition shadow-lg shadow-blue-500/20">Laden & Parsen</button>
             </div>
         </div>
     </div>
 
     <script>
+        // Available repository icons with local display resolver
+        const REPO_ICONS = [
+            { label: "Browser (www)", path: "/icons/www.svg" },
+            { label: "Chrome", path: "/icons/chrome.svg" },
+            { label: "Home Assistant", path: "/icons/home-assistant.svg" },
+            { label: "Docker", path: "/icons/docker.svg" },
+            { label: "Kodi", path: "/icons/kodi.svg" },
+            { label: "Greasyfork", path: "/icons/greasyfork.svg" },
+            { label: "Greasemonkey", path: "/icons/greasemonkey.svg" },
+            { label: "Steam", path: "/icons/steam.svg" },
+            { label: "TickTick", path: "/icons/ticktick.svg" },
+            { label: "Pelican", path: "/icons/pelican-panel.svg" },
+            { label: "Logitech G", path: "/icons/logitech-g.svg" },
+            { label: "Musixmatch", path: "/icons/musixmatch.svg" },
+            { label: "MySQL", path: "/icons/mysql.svg" },
+            { label: "Python", path: "/icons/python.svg" },
+            { label: "Windhawk", path: "/icons/windhawk.ico" },
+            { label: "AniWorld", path: "/icons/aniworld.ico" },
+            { label: "Serienstream", path: "/icons/serienstream.ico" }
+        ];
+
         let parsedData = { preface: '', categories: [], footer: '' };
         let isLoaded = false;
+        let activePreviewTab = 'code';
         
         let currentModalEdit = { isEdit: false, catIdx: null, projIdx: null };
         let dragSource = { type: null, catIdx: null, projIdx: null };
@@ -139,7 +361,97 @@
             lucide.createIcons();
             setupDropzone();
             setupTopBarEvents();
+            setupFileInput();
+            renderIconPills();
+
+            // Check if saved draft exists in localStorage
+            const savedDraft = localStorage.getItem('readme_editor_draft');
+            if (savedDraft) {
+                parseMarkdown(savedDraft);
+            }
         });
+
+        // Resolves display URL locally (strips leading slash for file:// preview if local)
+        function getDisplayIconUrl(path) {
+            if (!path) return '';
+            if (path.startsWith('/icons/')) {
+                return path.substring(1); // 'icons/...'
+            }
+            return path;
+        }
+
+        function renderIconPills() {
+            const projContainer = document.getElementById('proj-icon-pills');
+            const catContainer = document.getElementById('cat-icon-pills');
+            if (!projContainer || !catContainer) return;
+
+            const html = REPO_ICONS.map(icon => `
+                <button type="button" onclick="selectIcon('${icon.path}', 'proj')" class="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-blue-500 rounded-lg text-[11px] text-gray-300 transition">
+                    <img src="${getDisplayIconUrl(icon.path)}" class="w-3.5 h-3.5 object-contain" alt="" />
+                    <span>${icon.label}</span>
+                </button>
+            `).join('');
+
+            const catHtml = REPO_ICONS.map(icon => `
+                <button type="button" onclick="selectIcon('${icon.path}', 'cat')" class="inline-flex items-center gap-1.5 px-2 py-1 bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-indigo-500 rounded-lg text-[11px] text-gray-300 transition">
+                    <img src="${getDisplayIconUrl(icon.path)}" class="w-3.5 h-3.5 object-contain" alt="" />
+                    <span>${icon.label}</span>
+                </button>
+            `).join('');
+
+            projContainer.innerHTML = html;
+            catContainer.innerHTML = catHtml;
+        }
+
+        function selectIcon(path, target) {
+            const inputId = target === 'proj' ? 'proj-icon' : 'cat-icon';
+            const previewId = target === 'proj' ? 'proj-icon-preview' : 'cat-icon-preview';
+            document.getElementById(inputId).value = path;
+            updateIconPreview(inputId, previewId);
+        }
+
+        function updateIconPreview(inputId, previewId) {
+            const val = document.getElementById(inputId).value.trim();
+            const previewEl = document.getElementById(previewId);
+            if (!val) {
+                previewEl.innerHTML = '';
+                return;
+            }
+            if (val.startsWith('<img') || val.startsWith('http') || val.startsWith('/') || val.startsWith('icons/')) {
+                const src = val.startsWith('<img') ? (val.match(/src=["']([^"']+)["']/)?.[1] || '') : val;
+                previewEl.innerHTML = `<img src="${getDisplayIconUrl(src)}" class="w-4 h-4 object-contain inline" alt="" /> <span class="text-gray-500 text-[10px]">Vorschau</span>`;
+            } else {
+                previewEl.innerHTML = `<span class="text-base">${val}</span>`;
+            }
+        }
+
+        // Robust table row splitter that respects markdown brackets and links
+        function splitTableRow(row) {
+            let trimmed = row.trim();
+            if (trimmed.startsWith('|')) trimmed = trimmed.slice(1);
+            if (trimmed.endsWith('|')) trimmed = trimmed.slice(0, -1);
+            
+            const cols = [];
+            let current = '';
+            let inBracket = 0;
+            let inParen = 0;
+
+            for (let i = 0; i < trimmed.length; i++) {
+                const char = trimmed[i];
+                if (char === '[') inBracket++;
+                else if (char === ']') inBracket = Math.max(0, inBracket - 1);
+                else if (char === '(') inParen++;
+                else if (char === ')') inParen = Math.max(0, inParen - 1);
+                else if (char === '|' && inBracket === 0 && inParen === 0) {
+                    cols.push(current.trim());
+                    current = '';
+                    continue;
+                }
+                current += char;
+            }
+            cols.push(current.trim());
+            return cols;
+        }
 
         function parseMarkdown(md) {
             try {
@@ -150,15 +462,15 @@
 
                 for (let i = 1; i < blocks.length; i++) {
                     const block = blocks[i];
-                    const lines = block.split('\n');
+                    const lines = block.split(/\r?\n/);
                     const titleLine = lines[0].trim();
                     
                     let catIcon = '';
                     let catName = titleLine;
-                    const imgMatch = titleLine.match(/<img[^>]+src="([^"]+)"[^>]*>/);
+                    const imgMatch = titleLine.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
                     if (imgMatch) {
                         catIcon = imgMatch[1];
-                        catName = titleLine.replace(/<img[^>]+>/, '').trim();
+                        catName = titleLine.replace(/<img[^>]+>/i, '').trim();
                     }
 
                     const projects = [];
@@ -172,12 +484,12 @@
                             continue;
                         }
                         if (inTable && line.startsWith('|')) {
-                            const cols = line.split('|').map(c => c.trim()).filter((_, idx, arr) => idx > 0 && idx < arr.length - 1);
+                            const cols = splitTableRow(line);
                             if (cols.length >= 3) {
                                 const col1 = cols[0];
-                                let iconUrl = col1.match(/src="([^"]+)"/)?.[1] || "";
+                                let iconUrl = col1.match(/src=["']([^"']+)["']/i)?.[1] || "";
                                 let url = col1.match(/\]\(([^)]+)\)/)?.[1] || "";
-                                let name = col1.match(/\[(.*?)\]/)?.[1] || col1.replace(/<img[^>]*>/, '').replace(/\*/g, '').trim();
+                                let name = col1.match(/\[(.*?)\]/)?.[1] || col1.replace(/<img[^>]*>/i, '').replace(/\*/g, '').trim();
 
                                 projects.push({
                                     id: Math.random().toString(36).substr(2, 9),
@@ -203,17 +515,18 @@
                 isLoaded = true;
                 
                 document.getElementById('dropzone').classList.add('hidden');
-                document.getElementById('btn-load-demo').classList.add('hidden');
                 document.getElementById('editor-interface').classList.remove('hidden');
                 
                 renderUI();
+                saveToLocalStorage();
             } catch (e) {
+                console.error(e);
                 alert("Fehler beim Parsen der Markdown-Datei.");
             }
         }
 
         function generateMarkdown() {
-            if (!isLoaded) return;
+            if (!isLoaded) return '';
             let md = parsedData.preface.replace(/\s*-{3,}\s*$/, '').trimEnd() + '\n\n---\n\n';
             
             parsedData.categories.forEach((cat, idx) => {
@@ -243,72 +556,149 @@
             }
             
             document.getElementById('markdown-output').value = md;
+            updateRenderedPreview(md);
+            return md;
+        }
+
+        function updateRenderedPreview(md) {
+            const previewEl = document.getElementById('rendered-content');
+            if (!previewEl || typeof marked === 'undefined') return;
+            try {
+                previewEl.innerHTML = marked.parse(md);
+            } catch (e) {
+                previewEl.innerHTML = '<p class="text-red-400">Vorschau konnte nicht gerendert werden.</p>';
+            }
+        }
+
+        function switchPreviewTab(tab) {
+            activePreviewTab = tab;
+            const codeBtn = document.getElementById('tab-code');
+            const rendBtn = document.getElementById('tab-rendered');
+            const codeView = document.getElementById('view-code');
+            const rendView = document.getElementById('view-rendered');
+
+            if (tab === 'code') {
+                codeBtn.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition bg-blue-600 text-white flex items-center gap-1.5';
+                rendBtn.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition text-gray-400 hover:text-gray-200 flex items-center gap-1.5';
+                codeView.classList.remove('hidden');
+                rendView.classList.add('hidden');
+            } else {
+                rendBtn.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition bg-blue-600 text-white flex items-center gap-1.5';
+                codeBtn.className = 'px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition text-gray-400 hover:text-gray-200 flex items-center gap-1.5';
+                rendView.classList.remove('hidden');
+                codeView.classList.add('hidden');
+                updateRenderedPreview(document.getElementById('markdown-output').value);
+            }
         }
 
         function renderUI() {
             const container = document.getElementById('categories-container');
             container.innerHTML = '';
 
+            let totalProjects = 0;
+
             parsedData.categories.forEach((cat, catIdx) => {
+                totalProjects += cat.projects.length;
                 const catDiv = document.createElement('div');
-                catDiv.className = 'bg-gray-800 border border-gray-700 rounded-xl overflow-hidden shadow-sm hover:border-gray-500 transition-colors';
+                catDiv.className = 'bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-sm hover:border-gray-700 transition-all';
                 catDiv.setAttribute('draggable', 'true');
                 catDiv.setAttribute('data-type', 'category');
                 catDiv.setAttribute('data-cat-idx', catIdx);
 
                 let catIconHtml = cat.iconUrl 
-                    ? `<img src="${cat.iconUrl}" alt="icon" class="w-6 h-6 object-contain" />` 
-                    : `<i data-lucide="image" class="text-gray-500 w-6 h-6"></i>`;
+                    ? `<img src="${getDisplayIconUrl(cat.iconUrl)}" alt="icon" class="w-5 h-5 object-contain inline" />` 
+                    : `<i data-lucide="folder" class="text-indigo-400 w-5 h-5"></i>`;
 
                 let projectsHtml = '';
                 cat.projects.forEach((proj, projIdx) => {
                     let projIconHtml = proj.iconUrl 
-                        ? `<img src="${proj.iconUrl}" class="max-w-full max-h-full" alt="icon"/>` 
-                        : `<span class="text-xs text-gray-400">-</span>`;
+                        ? `<img src="${getDisplayIconUrl(proj.iconUrl)}" class="w-4 h-4 object-contain" alt="icon"/>` 
+                        : `<span class="text-xs text-gray-500 font-bold">•</span>`;
 
                     projectsHtml += `
                         <div draggable="true" data-type="project" data-cat-idx="${catIdx}" data-proj-idx="${projIdx}"
-                             class="group flex items-center gap-3 bg-gray-800 border border-gray-700 p-3 rounded-lg hover:border-blue-500/50 cursor-move transition-all">
-                            <i data-lucide="grip-vertical" class="text-gray-500 w-5 h-5 flex-shrink-0 cursor-grab"></i>
-                            <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center bg-gray-700 rounded">${projIconHtml}</div>
+                             class="group flex items-center gap-3 bg-gray-950/80 border border-gray-800/80 p-3 rounded-xl hover:border-blue-500/40 cursor-move transition-all">
+                            <i data-lucide="grip-vertical" class="text-gray-600 group-hover:text-gray-400 w-4 h-4 flex-shrink-0 cursor-grab"></i>
+                            <div class="w-7 h-7 flex-shrink-0 flex items-center justify-center bg-gray-900 rounded-lg border border-gray-800">${projIconHtml}</div>
                             <div class="flex-grow min-w-0">
-                                <p class="font-medium text-gray-200 truncate">${escapeHtml(proj.name)}</p>
-                                <p class="text-xs text-gray-500 truncate">${escapeHtml(proj.description)}</p>
+                                <p class="font-medium text-gray-200 text-sm truncate flex items-center gap-2">
+                                    ${escapeHtml(proj.name)}
+                                    ${proj.url ? `<a href="${proj.url}" target="_blank" class="text-gray-500 hover:text-blue-400 pointer-events-auto" title="Link öffnen"><i data-lucide="external-link" class="w-3 h-3"></i></a>` : ''}
+                                </p>
+                                <p class="text-xs text-gray-500 truncate">${escapeHtml(proj.description || 'Keine Beschreibung')}</p>
                             </div>
-                            <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                                <button onclick="openProjectModal(true, ${catIdx}, ${projIdx})" class="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-gray-700 rounded transition"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
-                                <button onclick="deleteProject(${catIdx}, ${projIdx})" class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                            <div class="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                                <button onclick="moveProject(${catIdx}, ${projIdx}, -1)" ${projIdx === 0 ? 'disabled class="p-1 text-gray-700 cursor-not-allowed"' : 'class="p-1 text-gray-400 hover:text-white rounded hover:bg-gray-800"'} title="Nach oben"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="moveProject(${catIdx}, ${projIdx}, 1)" ${projIdx === cat.projects.length - 1 ? 'disabled class="p-1 text-gray-700 cursor-not-allowed"' : 'class="p-1 text-gray-400 hover:text-white rounded hover:bg-gray-800"'} title="Nach unten"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="duplicateProject(${catIdx}, ${projIdx})" class="p-1 text-gray-400 hover:text-indigo-400 rounded hover:bg-gray-800 transition" title="Duplizieren"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="openProjectModal(true, ${catIdx}, ${projIdx})" class="p-1 text-gray-400 hover:text-blue-400 rounded hover:bg-gray-800 transition" title="Bearbeiten"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="deleteProject(${catIdx}, ${projIdx})" class="p-1 text-gray-400 hover:text-red-400 rounded hover:bg-gray-800 transition" title="Löschen"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                             </div>
                         </div>
                     `;
                 });
 
                 catDiv.innerHTML = `
-                    <div class="bg-gray-800/80 p-4 border-b border-gray-700 flex justify-between items-center group cursor-move">
-                        <div class="flex items-center gap-3 pointer-events-none">
-                            <i data-lucide="grip-vertical" class="text-gray-500 w-5 h-5 flex-shrink-0"></i>
-                            ${catIconHtml}
-                            <h3 class="font-semibold text-lg">${escapeHtml(cat.name)}</h3>
+                    <div class="bg-gray-900 p-3.5 border-b border-gray-800/80 flex justify-between items-center group cursor-move">
+                        <div class="flex items-center gap-2.5 pointer-events-none">
+                            <i data-lucide="grip-vertical" class="text-gray-600 group-hover:text-gray-400 w-4 h-4 flex-shrink-0"></i>
+                            <div class="w-6 h-6 flex items-center justify-center">${catIconHtml}</div>
+                            <h3 class="font-semibold text-base text-gray-200">${escapeHtml(cat.name)}</h3>
+                            <span class="text-[11px] bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">${cat.projects.length}</span>
                         </div>
-                        <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="openCategoryModal(true, ${catIdx})" class="p-1.5 text-gray-400 hover:text-blue-400 rounded bg-gray-700"><i data-lucide="edit-2" class="w-3 h-3"></i></button>
-                            <button onclick="deleteCategory(${catIdx})" class="p-1.5 text-gray-400 hover:text-red-400 rounded bg-gray-700"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+                        <div class="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                            <button onclick="moveCategory(${catIdx}, -1)" ${catIdx === 0 ? 'disabled class="p-1 text-gray-700 cursor-not-allowed"' : 'class="p-1 text-gray-400 hover:text-white rounded hover:bg-gray-800"'} title="Kategorie nach oben"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="moveCategory(${catIdx}, 1)" ${catIdx === parsedData.categories.length - 1 ? 'disabled class="p-1 text-gray-700 cursor-not-allowed"' : 'class="p-1 text-gray-400 hover:text-white rounded hover:bg-gray-800"'} title="Kategorie nach unten"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="openCategoryModal(true, ${catIdx})" class="p-1.5 text-gray-400 hover:text-blue-400 rounded-lg hover:bg-gray-800" title="Kategorie bearbeiten"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="deleteCategory(${catIdx})" class="p-1.5 text-gray-400 hover:text-red-400 rounded-lg hover:bg-gray-800" title="Kategorie löschen"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                         </div>
                     </div>
-                    <div class="p-3 space-y-2 bg-gray-900/30">
+                    <div class="p-3 space-y-2 bg-gray-950/40">
                         ${projectsHtml}
                         <button data-type="project-add" data-cat-idx="${catIdx}" onclick="openProjectModal(false, ${catIdx})" 
-                            class="w-full mt-2 py-2 border border-dashed border-gray-600 text-gray-400 hover:border-gray-400 hover:text-gray-200 rounded-lg text-sm flex justify-center items-center gap-2 transition">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Projekt hinzufügen
+                            class="w-full mt-1.5 py-2 border border-dashed border-gray-800 hover:border-gray-600 text-gray-400 hover:text-gray-200 rounded-xl text-xs sm:text-sm flex justify-center items-center gap-2 transition bg-gray-900/30">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Projekt hinzufügen
                         </button>
                     </div>
                 `;
                 container.appendChild(catDiv);
             });
 
+            document.getElementById('stats-badge').innerText = `${parsedData.categories.length} Kategorien, ${totalProjects} Projekte`;
+
             lucide.createIcons();
             generateMarkdown();
             setupDragAndDrop();
+        }
+
+        // Reordering logic
+        function moveCategory(idx, direction) {
+            const targetIdx = idx + direction;
+            if (targetIdx < 0 || targetIdx >= parsedData.categories.length) return;
+            const item = parsedData.categories.splice(idx, 1)[0];
+            parsedData.categories.splice(targetIdx, 0, item);
+            renderUI();
+            saveToLocalStorage();
+        }
+
+        function moveProject(catIdx, projIdx, direction) {
+            const targetIdx = projIdx + direction;
+            const projects = parsedData.categories[catIdx].projects;
+            if (targetIdx < 0 || targetIdx >= projects.length) return;
+            const item = projects.splice(projIdx, 1)[0];
+            projects.splice(targetIdx, 0, item);
+            renderUI();
+            saveToLocalStorage();
+        }
+
+        function duplicateProject(catIdx, projIdx) {
+            const original = parsedData.categories[catIdx].projects[projIdx];
+            const clone = JSON.parse(JSON.stringify(original));
+            clone.id = Math.random().toString(36).substr(2, 9);
+            clone.name += " (Kopie)";
+            parsedData.categories[catIdx].projects.splice(projIdx + 1, 0, clone);
+            renderUI();
+            saveToLocalStorage();
         }
 
         function setupDragAndDrop() {
@@ -322,11 +712,11 @@
                     dragSource.type = type;
                     dragSource.catIdx = parseInt(e.target.getAttribute('data-cat-idx'));
                     dragSource.projIdx = type === 'project' ? parseInt(e.target.getAttribute('data-proj-idx')) : null;
-                    e.target.classList.add('opacity-50');
+                    e.target.classList.add('opacity-40');
                 });
 
                 draggable.addEventListener('dragend', (e) => {
-                    e.target.classList.remove('opacity-50');
+                    e.target.classList.remove('opacity-40');
                     dropzones.forEach(dz => dz.classList.remove('drag-over'));
                 });
             });
@@ -360,12 +750,14 @@
                         const projectToMove = parsedData.categories[dragSource.catIdx].projects.splice(dragSource.projIdx, 1)[0];
                         parsedData.categories[tCatIdx].projects.splice(tProjIdx, 0, projectToMove);
                         renderUI();
+                        saveToLocalStorage();
                     } 
                     else if (dragSource.type === 'category' && targetType === 'category') {
                         if (dragSource.catIdx !== tCatIdx) {
                             const catToMove = parsedData.categories.splice(dragSource.catIdx, 1)[0];
                             parsedData.categories.splice(tCatIdx, 0, catToMove);
                             renderUI();
+                            saveToLocalStorage();
                         }
                     }
                 });
@@ -374,15 +766,16 @@
 
         function setupDropzone() {
             const dropzone = document.getElementById('dropzone');
+            dropzone.addEventListener('click', () => document.getElementById('file-input').click());
             dropzone.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 dropzone.classList.add('border-blue-400', 'bg-blue-400/10');
-                dropzone.classList.remove('border-gray-600');
+                dropzone.classList.remove('border-gray-700');
             });
             dropzone.addEventListener('dragleave', (e) => {
                 e.preventDefault();
                 dropzone.classList.remove('border-blue-400', 'bg-blue-400/10');
-                dropzone.classList.add('border-gray-600');
+                dropzone.classList.add('border-gray-700');
             });
             dropzone.addEventListener('drop', (e) => {
                 e.preventDefault();
@@ -396,10 +789,123 @@
             });
         }
 
+        function setupFileInput() {
+            document.getElementById('file-input').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => parseMarkdown(event.target.result);
+                    reader.readAsText(file);
+                }
+            });
+        }
+
+        // Automatic GitHub & Store Badges Builder
+        function buildBadgesFromUrl(url) {
+            if (!url) return '';
+            
+            // 1. GitHub
+            const ghMatch = url.match(/github\.com\/([^\/]+\/[^\/\s#?]+)/i);
+            if (ghMatch) {
+                const slug = ghMatch[1].replace(/\.git$/, '');
+                return `[![Stars](https://img.shields.io/github/stars/${slug}?style=flat-square&color=important&label=Stars)](https://github.com/${slug}/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/${slug}?color=blue&label=Last%20Update&style=flat-square)](https://github.com/${slug})`;
+            }
+
+            // 2. Chrome Web Store
+            const cwsMatch = url.match(/chromewebstore\.google\.com\/detail\/(?:[^\/]+\/)?([a-z0-9]{32})/i);
+            if (cwsMatch) {
+                const id = cwsMatch[1];
+                return `[![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-4285F4?style=flat-square&logo=chromewebstore&logoColor=white)](https://chromewebstore.google.com/detail/${id})<br>[![Version](https://img.shields.io/chrome-web-store/v/${id}?style=flat-square&color=informational&label=Version)](https://chromewebstore.google.com/detail/${id})`;
+            }
+
+            // 3. Greasyfork
+            const gfMatch = url.match(/greasyfork\.org\/.*scripts\/(\d+)/i);
+            if (gfMatch) {
+                const id = gfMatch[1];
+                return `[![Installs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=important&label=Installs&query=total_installs&url=https://api.greasyfork.org/en/scripts/${id}.json)](https://greasyfork.org/en/scripts/${id})<br>[![Version](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Version&query=version&url=https://api.greasyfork.org/en/scripts/${id}.json)](https://greasyfork.org/en/scripts/${id})`;
+            }
+
+            return '';
+        }
+
+        async function autoFetchUrlInfo() {
+            const url = document.getElementById('proj-url').value.trim();
+            if (!url) {
+                alert("Bitte gib zuerst eine URL ein.");
+                return;
+            }
+
+            // Check if GitHub Repo
+            const ghMatch = url.match(/github\.com\/([^\/]+\/[^\/\s#?]+)/i);
+            if (ghMatch) {
+                const slug = ghMatch[1].replace(/\.git$/, '');
+                try {
+                    const res = await fetch(`https://api.github.com/repos/${slug}`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (!document.getElementById('proj-name').value) {
+                            document.getElementById('proj-name').value = data.name.replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                        }
+                        if (!document.getElementById('proj-desc').value && data.description) {
+                            document.getElementById('proj-desc').value = data.description;
+                        }
+                        
+                        // Check if manifest.json exists
+                        let hasManifest = false;
+                        try {
+                            const mRes = await fetch(`https://api.github.com/repos/${slug}/contents/manifest.json`);
+                            hasManifest = mRes.ok;
+                        } catch(e) {}
+
+                        let badges = `[![Stars](https://img.shields.io/github/stars/${slug}?style=flat-square&color=important&label=Stars)](https://github.com/${slug}/stargazers)<br>`;
+                        if (hasManifest) {
+                            badges += `[![Version](https://img.shields.io/github/manifest-json/v/${slug}?style=flat-square&color=informational&label=Version)](https://github.com/${slug})<br>`;
+                        }
+                        badges += `[![Last Commit](https://img.shields.io/github/last-commit/${slug}?color=blue&label=Last%20Update&style=flat-square)](https://github.com/${slug})`;
+                        document.getElementById('proj-badges').value = badges;
+                        return;
+                    }
+                } catch(e) {
+                    console.log("GitHub API Limit oder Fehler, nutze Standard-Badges");
+                }
+            }
+
+            // Fallback badge generation
+            const generated = buildBadgesFromUrl(url);
+            if (generated) {
+                document.getElementById('proj-badges').value = generated;
+            } else {
+                alert("Kein automatisches Profil für diese URL erkannt. Badges können manuell eingetragen werden.");
+            }
+        }
+
+        function generateBadgesForCurrentProjectModal() {
+            const url = document.getElementById('proj-url').value.trim();
+            const badges = buildBadgesFromUrl(url);
+            if (badges) {
+                document.getElementById('proj-badges').value = badges;
+            } else {
+                const id = prompt("GitHub Repo (z.B. M4RC-XX/repo), Greasyfork ID oder Chrome Web Store ID:");
+                if (id) {
+                    if (id.includes('/')) {
+                        document.getElementById('proj-badges').value = `[![Stars](https://img.shields.io/github/stars/${id}?style=flat-square&color=important&label=Stars)](https://github.com/${id}/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/${id}?color=blue&label=Last%20Update&style=flat-square)](https://github.com/${id})`;
+                    } else {
+                        document.getElementById('proj-badges').value = `[![Installs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=important&label=Installs&query=total_installs&url=https://api.greasyfork.org/en/scripts/${id}.json)](https://greasyfork.org/en/scripts/${id})<br>[![Version](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Version&query=version&url=https://api.greasyfork.org/en/scripts/${id}.json)](https://greasyfork.org/en/scripts/${id})`;
+                    }
+                }
+            }
+        }
+
         function openProjectModal(isEdit, catIdx, projIdx = null) {
             currentModalEdit = { isEdit, catIdx, projIdx };
             document.getElementById('project-modal-title').innerText = isEdit ? 'Projekt bearbeiten' : 'Neues Projekt';
             
+            // Populate category select
+            const catSelect = document.getElementById('proj-cat-select');
+            catSelect.innerHTML = parsedData.categories.map((c, i) => `
+                <option value="${i}" ${i === catIdx ? 'selected' : ''}>${escapeHtml(c.name)}</option>
+            `).join('');
+
             if (isEdit) {
                 const proj = parsedData.categories[catIdx].projects[projIdx];
                 document.getElementById('proj-name').value = proj.name;
@@ -414,48 +920,49 @@
                 document.getElementById('proj-desc').value = '';
                 document.getElementById('proj-badges').value = '';
             }
+            updateIconPreview('proj-icon', 'proj-icon-preview');
             document.getElementById('project-modal').classList.remove('hidden');
         }
 
         function saveProject() {
-            let badges = document.getElementById('proj-badges').value;
-            const url = document.getElementById('proj-url').value;
+            let badges = document.getElementById('proj-badges').value.trim();
+            const url = document.getElementById('proj-url').value.trim();
+            const newCatIdx = parseInt(document.getElementById('proj-cat-select').value);
 
             if (!badges && url) {
-                const ghMatch = url.match(/github\.com\/([^\/]+\/[^\/]+?)(\/|$)/);
-                if (ghMatch) {
-                    const id = ghMatch[1];
-                    badges = `[![Stars](https://img.shields.io/github/stars/${id}?style=flat-square&color=important&label=Stars)](https://github.com/${id}/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/${id}?color=blue&label=Last%20Update&style=flat-square)](https://github.com/${id})`;
-                }
-                const gfMatch = url.match(/greasyfork\.org\/.*scripts\/(\d+)/);
-                if (gfMatch) {
-                    const id = gfMatch[1];
-                    badges = `[![Installs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=important&label=Installs&query=total_installs&url=https://api.greasyfork.org/en/scripts/${id}.json)](https://greasyfork.org/en/scripts/${id})<br>[![Version](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Version&query=version&url=https://api.greasyfork.org/en/scripts/${id}.json)](https://greasyfork.org/en/scripts/${id})`;
-                }
+                badges = buildBadgesFromUrl(url);
             }
 
             const projData = {
                 id: currentModalEdit.isEdit ? parsedData.categories[currentModalEdit.catIdx].projects[currentModalEdit.projIdx].id : Math.random().toString(36).substr(2, 9),
-                name: document.getElementById('proj-name').value,
+                name: document.getElementById('proj-name').value.trim(),
                 url: url,
-                iconUrl: document.getElementById('proj-icon').value,
-                description: document.getElementById('proj-desc').value,
+                iconUrl: document.getElementById('proj-icon').value.trim(),
+                description: document.getElementById('proj-desc').value.trim(),
                 badgesHtml: badges
             };
 
             if (currentModalEdit.isEdit) {
-                parsedData.categories[currentModalEdit.catIdx].projects[currentModalEdit.projIdx] = projData;
+                if (currentModalEdit.catIdx !== newCatIdx) {
+                    // Category changed: remove from old and add to new
+                    parsedData.categories[currentModalEdit.catIdx].projects.splice(currentModalEdit.projIdx, 1);
+                    parsedData.categories[newCatIdx].projects.push(projData);
+                } else {
+                    parsedData.categories[currentModalEdit.catIdx].projects[currentModalEdit.projIdx] = projData;
+                }
             } else {
-                parsedData.categories[currentModalEdit.catIdx].projects.push(projData);
+                parsedData.categories[newCatIdx].projects.push(projData);
             }
             closeModals();
             renderUI();
+            saveToLocalStorage();
         }
 
         function deleteProject(catIdx, projIdx) {
             if (!confirm("Projekt wirklich löschen?")) return;
             parsedData.categories[catIdx].projects.splice(projIdx, 1);
             renderUI();
+            saveToLocalStorage();
         }
 
         function openCategoryModal(isEdit = false, catIdx = null) {
@@ -470,14 +977,20 @@
                 document.getElementById('cat-name').value = '';
                 document.getElementById('cat-icon').value = '';
             }
+            updateIconPreview('cat-icon', 'cat-icon-preview');
             document.getElementById('category-modal').classList.remove('hidden');
         }
 
         function saveCategory() {
             const catData = {
-                name: document.getElementById('cat-name').value,
-                iconUrl: document.getElementById('cat-icon').value
+                name: document.getElementById('cat-name').value.trim(),
+                iconUrl: document.getElementById('cat-icon').value.trim()
             };
+
+            if (!catData.name) {
+                alert("Bitte einen Kategorie-Namen angeben.");
+                return;
+            }
 
             if (currentModalEdit.isEdit) {
                 parsedData.categories[currentModalEdit.catIdx].name = catData.name;
@@ -487,34 +1000,59 @@
             }
             closeModals();
             renderUI();
+            saveToLocalStorage();
         }
 
         function deleteCategory(catIdx) {
-            if (!confirm("Kategorie mit allen Projekten wirklich löschen?")) return;
+            const cat = parsedData.categories[catIdx];
+            if (!confirm(`Kategorie „${cat.name}“ mit allen ${cat.projects.length} Projekten wirklich löschen?`)) return;
             parsedData.categories.splice(catIdx, 1);
             renderUI();
+            saveToLocalStorage();
+        }
+
+        function openHeaderFooterModal() {
+            document.getElementById('edit-preface').value = parsedData.preface.trim();
+            document.getElementById('edit-footer').value = parsedData.footer.trim();
+            document.getElementById('header-footer-modal').classList.remove('hidden');
+        }
+
+        function saveHeaderFooter() {
+            parsedData.preface = document.getElementById('edit-preface').value.trim();
+            parsedData.footer = document.getElementById('edit-footer').value.trim();
+            closeModals();
+            generateMarkdown();
+            saveToLocalStorage();
+        }
+
+        function loadPastedMarkdown() {
+            const text = document.getElementById('paste-textarea').value.trim();
+            if (!text) {
+                alert("Bitte füge zuerst Markdown-Inhalt ein.");
+                return;
+            }
+            parseMarkdown(text);
+            closeModals();
         }
 
         function closeModals() {
-            document.getElementById('project-modal').classList.add('hidden');
-            document.getElementById('category-modal').classList.add('hidden');
+            document.querySelectorAll('[id$="-modal"]').forEach(modal => modal.classList.add('hidden'));
         }
 
-        function autoGenerateBadges() {
-            const id = prompt("GitHub Repo (z.B. M4RC-XX/repo) oder Greasyfork ID eingeben:");
-            if (id) {
-                const isGh = id.includes('/');
-                const badges = isGh 
-                    ? `[![Stars](https://img.shields.io/github/stars/${id}?style=flat-square&color=important&label=Stars)](https://github.com/${id}/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/${id}?color=blue&label=Last%20Update&style=flat-square)](https://github.com/${id})`
-                    : `[![Installs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=important&label=Installs&query=total_installs&url=https://api.greasyfork.org/en/scripts/${id}.json)](https://greasyfork.org/en/scripts/${id})<br>[![Version](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Version&query=version&url=https://api.greasyfork.org/en/scripts/${id}.json)](https://greasyfork.org/en/scripts/${id})`;
-                document.getElementById('proj-badges').value = badges;
-            }
+        function saveToLocalStorage() {
+            if (!isLoaded) return;
+            try {
+                const md = generateMarkdown();
+                localStorage.setItem('readme_editor_draft', md);
+            } catch (e) {}
         }
 
         function setupTopBarEvents() {
-            document.getElementById('btn-load-demo').addEventListener('click', () => {
-                const demo = `# Hi there, I'm Marc! 👋\n\nWelcome to my GitHub profile!\n\n---\n\n### <img src="https://www.home-assistant.io/images/favicon.ico" width="20" align="center" /> Home-Assistant\n\n| Project | Description | Stats & Info |\n| :--- | :--- | :--- |\n| <img src="https://d107mjio2rjf74.cloudfront.net/web/static/img/favicon.ico" width="20" align="center" /> **[Home Assistant TickTick Todo](https://github.com/M4RC-XX/homeassistant_ticktick_todo)** | A Home Assistant integration. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/homeassistant_ticktick_todo?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/homeassistant_ticktick_todo/stargazers) |\n\n<br>\n\n### <img src="https://kodi.tv/images/kodi-logo.svg" width="20" align="center" /> Kodi\n\n| Project | Description | Stats & Info |\n| :--- | :--- | :--- |\n| **[Kodi Repo](https://github.com/M4RC-XX/repo)** | Custom Repo | Badges hier |\n\n---\n*Thanks for visiting!*`;
-                parseMarkdown(demo);
+            document.getElementById('btn-load-demo').addEventListener('click', loadDefaultTemplate);
+
+            document.getElementById('btn-paste-md').addEventListener('click', () => {
+                document.getElementById('paste-textarea').value = '';
+                document.getElementById('paste-modal').classList.remove('hidden');
             });
 
             document.getElementById('btn-copy').addEventListener('click', () => {
@@ -538,7 +1076,7 @@
 
             document.getElementById('btn-download').addEventListener('click', () => {
                 const text = document.getElementById('markdown-output').value;
-                const blob = new Blob([text], { type: 'text/markdown' });
+                const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -546,6 +1084,86 @@
                 a.click();
                 URL.revokeObjectURL(url);
             });
+
+            // Live edit of textarea synchronizes rendered preview
+            document.getElementById('markdown-output').addEventListener('input', (e) => {
+                updateRenderedPreview(e.target.value);
+            });
+        }
+
+        function loadDefaultTemplate() {
+            const template = `# Hi there, I'm Marc! 👋
+
+Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and building useful tools for my home-lab and media setups. Check out my featured projects below.
+
+---
+
+### <img src="/icons/home-assistant.svg" width="20" align="center" /> Home-Assistant
+
+| Project | Description | Stats & Info |
+| :--- | :--- | :--- |
+| <img src="/icons/ticktick.svg" width="20" align="center" /> **[Home Assistant TickTick Todo](https://github.com/M4RC-XX/homeassistant_ticktick_todo)** | A <a href="https://www.home-assistant.io">Home Assistant</a> integration to sync and manage your <a href="https://ticktick.com/">TickTick</a> to-do lists directly within your smart home dashboard. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/homeassistant_ticktick_todo?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/homeassistant_ticktick_todo/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/homeassistant_ticktick_todo?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/homeassistant_ticktick_todo) |
+| <img src="/icons/pelican-panel.svg" width="20" align="center" /> **[Home Assistant Pelican Panel](https://github.com/M4RC-XX/homeassistant_pelican_panel)** | A <a href="https://www.home-assistant.io">Home Assistant</a> integration for <a href="https://pelican.dev/">Pelican Panel</a>. Monitor server resources (CPU, RAM, Network, Disk) and control power states (Start, Stop, Restart) directly from your smart home. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/homeassistant_pelican_panel?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/homeassistant_pelican_panel/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/homeassistant_pelican_panel?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/homeassistant_pelican_panel) |
+| <img src="/icons/steam.svg" width="20" align="center" /> **[Home Assistant Steam Dashboard](https://github.com/M4RC-XX/homeassistant_steam_dashboard)** | An unofficial <a href="https://store.steampowered.com/">Steam</a> integration for <a href="https://www.home-assistant.io">Home Assistant</a>. Monitor your live status, playtime, level, and gaming habits directly from your smart home dashboard! | [![Stars](https://img.shields.io/github/stars/M4RC-XX/homeassistant_steam_dashboard?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/homeassistant_steam_dashboard/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/homeassistant_steam_dashboard?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/homeassistant_steam_dashboard) |
+| <img src="/icons/logitech-g.svg" width="20" align="center" /> **[Home Assistant Battery Sensor for G Hub](https://github.com/M4RC-XX/homeassistant_battery_sensor_for_ghub)** | An unofficial but powerful Home Assistant integration for Logitech devices managed by G Hub. Monitor your peripherals' battery levels, estimated remaining runtimes, and charging states directly from your smart home dashboard. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/homeassistant_battery_sensor_for_ghub?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/homeassistant_battery_sensor_for_ghub/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/homeassistant_battery_sensor_for_ghub?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/homeassistant_battery_sensor_for_ghub) |
+
+<br>
+
+### <img src="/icons/www.svg" width="20" align="center" /> Browser
+
+| Project | Description | Stats & Info |
+| :--- | :--- | :--- |
+| <img src="/icons/chrome.svg" width="20" align="center" /> **[QUANTUM Video Downloader](https://chromewebstore.google.com/detail/amifjioeobkepofkaieinlpleapicoaa)** | A modern, lightweight Chrome/Chromium extension (Manifest V3) to detect and download videos and audio (MP4, WebM, MKV, HLS/.m3u8, DASH/.mpd) directly in the browser. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/QUANTUM_Video_Downloader?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/QUANTUM_Video_Downloader/stargazers)<br>[![Version](https://img.shields.io/chrome-web-store/v/amifjioeobkepofkaieinlpleapicoaa?style=flat-square&color=informational&label=Version)](https://chromewebstore.google.com/detail/amifjioeobkepofkaieinlpleapicoaa)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/QUANTUM_Video_Downloader?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/QUANTUM_Video_Downloader) |
+
+<br>
+
+### <img src="/icons/kodi.svg" width="20" align="center" /> Kodi
+
+| Project | Description | Stats & Info |
+| :--- | :--- | :--- |
+| <img src="/icons/docker.svg" width="20" align="center" /> **[Kodi Repo Server Docker](https://github.com/M4RC-XX/kodi-repo-server-docker)** | A lightweight Docker container setup to easily host and serve your own custom Kodi add-on repository. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/kodi-repo-server-docker?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/kodi-repo-server-docker/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/kodi-repo-server-docker?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/kodi-repo-server-docker) |
+| <img src="/icons/kodi.svg" width="20" align="center" /> **[MXRC Kodi Repository](https://github.com/M4RC-XX/repository.mxrc-repo)** | A custom Kodi add-on repository containing personal tools, scrapers, and media extensions. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/repository.mxrc-repo?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/repository.mxrc-repo/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/repository.mxrc-repo?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/repository.mxrc-repo) |
+
+<br>
+
+### <img src="/icons/docker.svg" width="20" align="center" /> Docker
+
+| Project | Description | Stats & Info |
+| :--- | :--- | :--- |
+| <img src="/icons/kodi.svg" width="20" align="center" /> **[Kodi Repo Server Docker](https://github.com/M4RC-XX/kodi-repo-server-docker)** | A lightweight Docker container setup to easily host and serve your own custom Kodi add-on repository. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/kodi-repo-server-docker?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/kodi-repo-server-docker/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/kodi-repo-server-docker?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/kodi-repo-server-docker) |
+| <img src="/icons/musixmatch.svg" width="20" align="center" /> **[MxLRC Docker Compose](https://github.com/M4RC-XX/MxLRC-Docker-Compose)** | A Dockerized environment for \`mxlrc\` to download \`.lrc\` lyrics from Musixmatch, optimized for Raspberry Pi. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/MxLRC-Docker-Compose?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/MxLRC-Docker-Compose/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/MxLRC-Docker-Compose?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/MxLRC-Docker-Compose) |
+| <img src="/icons/aniworld.ico" width="20" align="center" /> **[AniWorld Downloader Docker](https://github.com/M4RC-XX/AniWorld-Downloader-Docker)** | AniWorld Downloader is a versatile command-line tool designed for downloading and streaming anime, series, and movies. It supports Windows, macOS, and Linux, offering a seamless experience across platforms. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/AniWorld-Downloader-Docker?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/AniWorld-Downloader-Docker/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/AniWorld-Downloader-Docker?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/AniWorld-Downloader-Docker) |
+| <img src="/icons/pelican-panel.svg" width="20" align="center" /> **[Pelican Eggs](https://github.com/M4RC-XX/pelican-eggs)** | A collection of custom Pelican / Pterodactyl eggs for deploying various game servers and applications. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/pelican-eggs?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/pelican-eggs/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/pelican-eggs?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/pelican-eggs) |
+
+<br>
+
+### <img src="/icons/greasyfork.svg" width="20" align="center" /> Userscripts
+
+| Project | Description | Stats & Info |
+| :--- | :--- | :--- |
+| <img src="/icons/serienstream.ico" width="20" align="center" /> **[Serienstream & Aniworld Priority Hoster](https://greasyfork.org/en/scripts/524865)** | A userscript to automatically prioritize your preferred video hosters on Serienstream and Aniworld. | [![Installs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=important&label=Installs&query=total_installs&url=https://api.greasyfork.org/en/scripts/524865.json)](https://greasyfork.org/en/scripts/524865)<br>[![Version](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Version&query=version&url=https://api.greasyfork.org/en/scripts/524865.json)](https://greasyfork.org/en/scripts/524865) |
+| <img src="/icons/serienstream.ico" width="20" align="center" /> **[Serienstream & Aniworld Watched Notifications](https://greasyfork.org/en/scripts/524868)** | A userscript to provide visual notifications and tracking for watched episodes on Serienstream and Aniworld. | [![Installs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=important&label=Installs&query=total_installs&url=https://api.greasyfork.org/en/scripts/524868.json)](https://greasyfork.org/en/scripts/524868)<br>[![Version](https://img.shields.io/badge/dynamic/json?style=flat-square&color=informational&label=Version&query=version&url=https://api.greasyfork.org/en/scripts/524868.json)](https://greasyfork.org/en/scripts/524868) |
+
+<br>
+
+### <img src="/icons/windhawk.ico" width="20" align="center" /> Windhawk
+
+| Project | Description | Stats & Info |
+| :--- | :--- | :--- |
+| <img src="/icons/windhawk.ico" width="20" align="center" /> **[Windhawk Mods](https://github.com/M4RC-XX/windhawk_mods)** | A collection of mods for Windhawk, the customization platform for Windows. These mods are designed to tweak, enhance, and optimize various aspects of the Windows UI and system behavior. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/windhawk_mods?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/windhawk_mods/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/windhawk_mods?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/windhawk_mods) |
+
+<br>
+
+### 🛠️ Other
+
+| Project | Description | Stats & Info |
+| :--- | :--- | :--- |
+| <img src="/icons/mysql.svg" width="20" align="center" /> **[MySQL User Management](https://github.com/M4RC-XX/python.mysql-user-management)** | A Python-based user management system with MySQL integration and automated Telegram notifications. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/python.mysql-user-management?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/python.mysql-user-management/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/python.mysql-user-management?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/python.mysql-user-management) |
+
+
+---
+*If you find my projects helpful, feel free to leave a ⭐ on the repositories!*`;
+            parseMarkdown(template);
         }
 
         function escapeHtml(unsafe) {

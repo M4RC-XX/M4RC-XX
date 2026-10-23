@@ -15,6 +15,14 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 
 <br>
 
+### <img src="/icons/www.svg" width="20" align="center" /> Browser
+
+| Project | Description | Stats & Info |
+| :--- | :--- | :--- |
+| <img src="/icons/chrome.svg" width="20" align="center" /> **[QUANTUM Video Downloader](https://chromewebstore.google.com/detail/amifjioeobkepofkaieinlpleapicoaa)** | A modern, lightweight Chrome/Chromium extension (Manifest V3) to detect and download videos and audio (MP4, WebM, MKV, HLS/.m3u8, DASH/.mpd) directly in the browser. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/QUANTUM_Video_Downloader?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/QUANTUM_Video_Downloader/stargazers)<br>[![Version](https://img.shields.io/chrome-web-store/v/amifjioeobkepofkaieinlpleapicoaa?style=flat-square&color=informational&label=Version)](https://chromewebstore.google.com/detail/amifjioeobkepofkaieinlpleapicoaa)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/QUANTUM_Video_Downloader?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/QUANTUM_Video_Downloader) |
+
+<br>
+
 ### <img src="/icons/kodi.svg" width="20" align="center" /> Kodi
 
 | Project | Description | Stats & Info |
@@ -35,14 +43,6 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 
 <br>
 
-### <img src="/icons/www.svg" width="20" align="center" /> Browser
-
-| Project | Description | Stats & Info |
-| :--- | :--- | :--- |
-| <img src="/icons/chrome.svg" width="20" align="center" /> **[QUANTUM Video Downloader](https://chromewebstore.google.com/detail/amifjioeobkepofkaieinlpleapicoaa)** | A modern, lightweight Chrome/Chromium extension (Manifest V3) to detect and download videos and audio (MP4, WebM, MKV, HLS/.m3u8, DASH/.mpd) directly in the browser. | [![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-4285F4?style=flat-square&logo=chromewebstore&logoColor=white)](https://chromewebstore.google.com/detail/amifjioeobkepofkaieinlpleapicoaa)<br>[![Version](https://img.shields.io/chrome-web-store/v/amifjioeobkepofkaieinlpleapicoaa?style=flat-square&color=informational&label=Version)](https://chromewebstore.google.com/detail/amifjioeobkepofkaieinlpleapicoaa) |
-
-<br>
-
 ### <img src="/icons/greasyfork.svg" width="20" align="center" /> Userscripts
 
 | Project | Description | Stats & Info |
@@ -56,7 +56,7 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 
 | Project | Description | Stats & Info |
 | :--- | :--- | :--- |
-| <img src="/icons/windhawk.ico" width="20" align="center" /> **[Windhawk Mods](https://github.com/M4RC-XX/windhawk_mods)** | A collection mods for Windhawk, the customization platform for Windows. These mods are designed to tweak, enhance, and optimize various aspects of the Windows UI and system behavior. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/windhawk_mods?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/windhawk_mods/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/windhawk_mods?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/windhawk_mods) |
+| <img src="/icons/windhawk.ico" width="20" align="center" /> **[Windhawk Mods](https://github.com/M4RC-XX/windhawk_mods)** | A collection of mods for Windhawk, the customization platform for Windows. These mods are designed to tweak, enhance, and optimize various aspects of the Windows UI and system behavior. | [![Stars](https://img.shields.io/github/stars/M4RC-XX/windhawk_mods?style=flat-square&color=important&label=Stars)](https://github.com/M4RC-XX/windhawk_mods/stargazers)<br>[![Last Commit](https://img.shields.io/github/last-commit/M4RC-XX/windhawk_mods?color=blue&label=Last%20Update&style=flat-square)](https://github.com/M4RC-XX/windhawk_mods) |
 
 <br>
 

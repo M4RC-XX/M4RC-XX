@@ -35,6 +35,14 @@ Welcome to my GitHub profile! I enjoy writing scripts, automating tasks, and bui
 
 <br>
 
+### <img src="/icons/www.svg" width="20" align="center" /> Browser
+
+| Project | Description | Stats & Info |
+| :--- | :--- | :--- |
+| <img src="/icons/chrome.svg" width="20" align="center" /> **[QUANTUM Video Downloader](https://chromewebstore.google.com/detail/amifjioeobkepofkaieinlpleapicoaa)** | A modern, lightweight Chrome/Chromium extension (Manifest V3) to detect and download videos and audio (MP4, WebM, MKV, HLS/.m3u8, DASH/.mpd) directly in the browser. | [![Chrome Web Store](https://img.shields.io/badge/Chrome_Web_Store-4285F4?style=flat-square&logo=chromewebstore&logoColor=white)](https://chromewebstore.google.com/detail/amifjioeobkepofkaieinlpleapicoaa)<br>[![Version](https://img.shields.io/chrome-web-store/v/amifjioeobkepofkaieinlpleapicoaa?style=flat-square&color=informational&label=Version)](https://chromewebstore.google.com/detail/amifjioeobkepofkaieinlpleapicoaa) |
+
+<br>
+
 ### <img src="/icons/greasyfork.svg" width="20" align="center" /> Userscripts
 
 | Project | Description | Stats & Info |
